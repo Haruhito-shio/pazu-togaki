@@ -316,9 +316,9 @@ var tt=0;function toast(s){var t=$('#toast');t.textContent=s;t.hidden=false;clea
 /* ---------- 数据 ---------- */
 var KEY='honmaru-v2',DB=null,ref=null,wt=0,busy=false,dirty=false;
 function mk(name,start,end){return{name:name,start:start,end:end,goal:2000000,min:290000,tk:3,gpp:50,hpp:10,rstart:310000,rstep:10000,rgem:300,pcap:2000000,logs:[],now:null,packs:0,fort:null}}
-function seed(){var d={ts:0,cur:'a1',P:{wake:'08:00',sleep:'23:30',busy:[['10:30','12:30'],['18:00','19:40']],mpg:7,hp:1050,tp:1000,rec:24,cap:5,buy:1},acts:{a1:mk('ぷずぎり 活动','2026-10-14T15:00','2026-11-04T12:00')}};
+function seed(){var d={ts:0,cur:'a1',P:{wake:'08:00',sleep:'23:30',busy:[['10:30','12:30'],['18:00','19:40']],mpg:7,hp:1050,tp:1000,rec:24,cap:5,bm:3,ref:0,tks:1},acts:{a1:mk('ぷずぎり 活动','2026-10-14T15:00','2026-11-04T12:00')}};
  var a=d.acts.a1,t=new Date(2026,9,18,12,10).getTime();a.now={pt:123046,h:5,tk:3,t:t};a.logs=[{t:t,pt:123046}];return d}
-function fix(d){var k,a,df=mk('','','');if(!d.P)d.P=seed().P;if(!d.acts)d.acts={};for(k in d.acts){a=d.acts[k];Object.keys(df).forEach(function(q){if(a[q]===undefined)a[q]=df[q]});if(!a.logs)a.logs=[]}
+function fix(d){var k,a,df=mk('','','');if(!d.P)d.P=seed().P;var P0=d.P;if(P0.bm===undefined)P0.bm=(+P0.buy===0)?0:3;if(P0.ref===undefined)P0.ref=0;if(P0.tks===undefined)P0.tks=1;if(P0.cv&&!P0.cv2){P0.cv=P0.cv.concat(['free','worth']);P0.cv2=1}if(P0.cv===undefined)P0.cv2=1;if(!d.acts)d.acts={};for(k in d.acts){a=d.acts[k];Object.keys(df).forEach(function(q){if(a[q]===undefined)a[q]=df[q]});if(!a.logs)a.logs=[]}
  if(!d.acts[d.cur])d.cur=Object.keys(d.acts)[0];if(!d.cur){d=seed()}return d}
 try{DB=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 DB=fix(DB&&DB.acts?DB:seed());
@@ -334,35 +334,55 @@ function wins(P,from,to){var aw=[],bz=[],N=Math.ceil(to/1440)+1,w=tp(P.wake),s=t
  aw.forEach(function(r){var a=Math.max(r[0],from),b=Math.min(r[1],to),c=a,i;if(b<=a)return;for(i=0;i<bz.length;i++){if(bz[i][1]<=c)continue;if(bz[i][0]>=b)break;if(bz[i][0]>c)out.push([c,bz[i][0]]);c=Math.max(c,bz[i][1])}if(b>c)out.push([c,b])});
  return out.sort(function(p,q){return p[0]-q[0]})}
 function sum(w){return w.reduce(function(s,x){return s+x[1]-x[0]},0)}
-function rew(a,c){return Math.floor(Math.max(0,Math.min(c,a.pcap)-a.rstart)/(a.rstep>0?a.rstep:1))*a.rgem}
+function rew(a,c){c=Math.min(c,a.pcap);if(c<a.rstart)return 0;return(Math.floor((c-a.rstart)/(a.rstep>0?a.rstep:1))+1)*a.rgem}
+var BM=['不买心','买心冲刺目标','只保最低目标','划算才买'];
 function calc(a){a=a||A();var P=DB.P,base=new Date(a.start);base.setHours(0,0,0,0);
  function ab(t){return(t-base)/M}
- var s0=ab(new Date(a.start)),e0=ab(new Date(a.end)),nowA=ab(Date.now()),nD=Math.max(1,Math.ceil(e0/1440)),mpg=P.mpg>0?P.mpg:7,rec=P.rec>0?P.rec:24,i;
- var W=wins(P,s0,e0),t0=Math.max(nowA,s0),WF=wins(P,t0,e0),N=a.now||{pt:0,h:P.cap,tk:a.tk};
- var pt=N.pt,h=N.h,tk=N.tk;
- if(nowA<s0){h=P.cap;tk=a.tk}else if(N.t){var an=ab(N.t);if(h<P.cap)h=Math.min(P.cap,h+Math.floor((Date.now()-N.t)/M/rec));
-  for(i=Math.floor(an/1440)-1;i<=Math.floor(nowA/1440);i++){var tb0=i*1440+1380;if(tb0>an&&tb0<=nowA)tk+=a.tk}}
+ var s0=ab(new Date(a.start)),e0=ab(new Date(a.end)),nowA=ab(Date.now()),nD=Math.max(1,Math.ceil(e0/1440)),mpg=P.mpg>0?P.mpg:7,rec=P.rec>0?P.rec:24,cap=Math.max(1,Math.floor(P.cap)||5),hp=P.hp>0?P.hp:1,tpp=P.tp>0?P.tp:0,i;
+ var W=wins(P,s0,e0),t0=Math.max(nowA,s0),WF=wins(P,t0,e0),N=a.now||{pt:0,h:cap,tk:a.tk};
+ var pt0=N.pt,h0=N.h,tk0=N.tk,stack=+P.tks!==0;
+ /* 推算此刻的心数、门票：从最后一次记录起算（假设记录之后没有打过） */
+ if(nowA<s0){h0=cap;tk0=a.tk}else if(N.t){var an=ab(N.t);if(h0<cap)h0=Math.min(cap,h0+Math.floor((Date.now()-N.t)/M/rec));
+  for(i=Math.floor(an/1440)-1;i<=Math.floor(nowA/1440);i++){var tb0=i*1440+1380;if(tb0>an&&tb0<=nowA)tk0=stack?tk0+a.tk:a.tk}}
  var avF=[],avA=[],slots=[];for(i=0;i<nD+1;i++){avF.push(0);avA.push(0)}
  W.forEach(function(w){avA[Math.floor(w[0]/1440)]+=w[1]-w[0]});
  WF.forEach(function(w){var t=w[0];avF[Math.floor(w[0]/1440)]+=w[1]-w[0];while(t+mpg<=w[1]){slots.push(t);t+=mpg}});
  var B=[];for(i=0;i<=nD;i++){var tb=i*1440+1380;if(tb>t0&&tb<e0)B.push(tb)}
  var days=[],byD={};slots.forEach(function(x){var d=Math.floor(x/1440);if(!byD[d]){byD[d]=[];days.push(d)}byD[d].push(x)});
- var rows={},tot={g:0,t:0,b:0,nat:0},last=t0,bi=0,prog=0,R;
- function reg(dt){if(h>=P.cap){prog=0;return}prog+=dt;var n=Math.floor(prog/rec);if(h+n>=P.cap){R.nat+=P.cap-h;h=P.cap;prog=0}else{h+=n;prog-=n*rec;R.nat+=n}}
- days.forEach(function(d,di){R=rows[d]={need:Math.max(0,(a.goal-pt)/(days.length-di)),g:0,t:0,b:0,nat:0,pts:0};var p0=pt;
-  byD[d].forEach(function(x){if(pt>=a.goal||pt-p0>=R.need)return;
-   while(bi<B.length&&B[bi]<=x){reg(B[bi]-last);last=B[bi];tk+=a.tk;bi++}
-   reg(x-last);last=x;var u;
-   if(h>=P.cap&&h>=1){h--;u='g'}else if(tk>0){tk--;u='t'}else if(h>=1){h--;u='g'}else if(+P.buy){h+=a.hpp;R.b++;h--;u='g'}else return;
-   if(u==='g'){R.g++;R.pts+=P.hp;pt+=P.hp}else{R.t++;R.pts+=P.tp;pt+=P.tp}});
-  R.cum=pt;tot.g+=R.g;tot.t+=R.t;tot.b+=R.b;tot.nat+=R.nat});
- var fut=days.map(function(d){return rows[d]}),n=fut.length||1,sm=function(k){return fut.reduce(function(s,r){return s+r[k]},0)};
+ var cpp=a.hpp>0?a.gpp/(a.hpp*hp):Infinity,rpp=a.rgem/(a.rstep>0?a.rstep:1);
+ var hpk=a.hpp>0?a.hpp*hp:0,tgt=a.min;
+ function nextT(p){var st=a.rstep>0?a.rstep:1;return p<a.rstart?a.rstart:a.rstart+(Math.floor((p-a.rstart)/st)+1)*st}
+ function okBuy(mode,pt,nb,bud){if(mode===1)return pt<a.goal;var need=nb<bud&&pt<tgt;if(mode===2)return need;if(mode===3)return need||(cpp<rpp&&pt<a.pcap);return false}
+ /* 模拟：mode 决定什么时候买心；心优先在满槽时用（不浪费回复），然后是门票 */
+ var remW=[],acc=0;for(i=days.length-1;i>=0;i--){acc+=avF[days[i]];remW[i]=acc}
+ function sim(mode,bud){var h=h0,tk=tk0,pt=pt0,rows={},tot={g:0,t:0,b:0,nat:0},last=t0,bi=0,prog=0,nb=0,R;
+  function reg(dt){if(h>=cap){prog=0;return}prog+=dt;var n=Math.floor(prog/rec);if(h+n>=cap){R.nat+=cap-h;h=cap;prog=0}else{h+=n;prog-=n*rec;R.nat+=n}}
+  days.forEach(function(d,di){R=rows[d]={need:Math.max(0,(a.goal-pt))*avF[d]/(remW[di]||1),g:0,t:0,b:0,nat:0,pts:0};var p0=pt;
+   byD[d].forEach(function(x){if(pt>=a.goal||pt-p0>=R.need)return;
+    while(bi<B.length&&B[bi]<=x){reg(B[bi]-last);last=B[bi];tk=stack?tk+a.tk:a.tk;bi++}
+    reg(x-last);last=x;var u;
+    if(h>=cap&&h>=1){h--;u='g'}else if(tk>0){tk--;u='t'}else if(h>=1){h--;u='g'}else if(a.hpp>=1&&okBuy(mode,pt,nb,bud)){h+=a.hpp;R.b++;nb++;h--;u='g'}else return;
+    if(u==='g'){R.g++;R.pts+=hp;pt+=hp}else{R.t++;R.pts+=tpp;pt+=tpp}});
+   R.cum=pt;tot.g+=R.g;tot.t+=R.t;tot.b+=R.b;tot.nat+=R.nat});
+  return{rows:rows,tot:tot,pt:pt}}
+ var mode=+P.bm,FR=sim(0,0),PL=mode===0?FR:sim(mode,0);
+ if(mode===3&&hpk>0){var T1=nextT(FR.pt);if(T1<=a.pcap&&Math.ceil((T1-FR.pt)/hpk)*a.gpp<a.rgem)tgt=Math.max(tgt,T1)}
+ /* 保最低目标：不买心也到不了目标时，才按缺口买，并用二分找出刚好够的组数（不多买） */
+ function fit(m,P0){var Q=P0;if((m===2||m===3)&&Q.pt<tgt&&hpk>0){var hi=Math.ceil((tgt-Q.pt)/hpk),it=0;while(it++<10){Q=sim(m,hi);if(Q.pt>=tgt)break;hi+=Math.ceil((tgt-Q.pt)/hpk)}
+  if(Q.pt>=tgt){var lo=0;while(lo<hi){var mid=(lo+hi)>>1;if(sim(m,mid).pt>=tgt)hi=mid;else lo=mid+1}Q=sim(m,hi)}}return Q}
+ function netOf(Q){return rew(a,Q.pt)-Q.tot.b*a.gpp}
+ PL=fit(mode,PL);
+ if(mode===3){var alt=fit(2,FR);if(netOf(alt)>netOf(PL))PL=alt;if(FR.pt>=a.min&&netOf(FR)>netOf(PL))PL=FR}
+ var rows=PL.rows,tot=PL.tot,pt=PL.pt,MX=mode===1?PL:sim(1,0);
+ /* 每天平均：只取完整的一天（首尾不完整的天会把平均拉低），没有完整天时才用全部 */
  var wk=tp(P.wake),sl=tp(P.sleep);if(sl<=wk)sl+=1440;var awake=sl-wk,gen=sum(wins(P,2880,4320));
- var elapsed=nowA<=s0?0:sum(wins(P,s0,Math.min(nowA,e0))),totW=sum(W),cur=N.pt,rwF=rew(a,pt),rwN=rew(a,cur),gl=tot.b*a.gpp,gd=(a.packs||0)*a.gpp;
- return{a:a,P:P,base:base,s0:s0,e0:e0,nowA:nowA,nD:nD,rows:rows,days:days,avF:avF,avA:avA,final:pt,tot:tot,cur:cur,
-  today:Math.floor(nowA/1440),n:n,avgPts:sm('pts')/n,avgG:(sm('g')+sm('t'))/n,avgAv:days.reduce(function(s,d){return s+avF[d]},0)/n,
+ var fd=days.filter(function(d){return avF[d]>=gen-1&&avA[d]>=gen-1}),use=fd.length?fd:days,n=use.length||1,sm=function(k){return use.reduce(function(s,d){return s+rows[d][k]},0)};
+ var elapsed=nowA<=s0?0:sum(wins(P,s0,Math.min(nowA,e0))),totW=sum(W),cur=N.pt,rwF=rew(a,pt),rwN=rew(a,cur),gl=tot.b*a.gpp,gd=(a.packs||0)*a.gpp,refT=+P.ref===1?a.min:a.goal;
+ return{a:a,P:P,base:base,s0:s0,e0:e0,nowA:nowA,nD:nD,rows:rows,days:days,avF:avF,avA:avA,final:pt,tot:tot,cur:cur,mode:mode,refT:refT,
+  today:Math.floor(nowA/1440),n:n,avgPts:sm('pts')/n,avgG:(sm('g')+sm('t'))/n,avgAv:use.reduce(function(s,d){return s+avF[d]},0)/n,fullDays:fd.length,
   rwF:rwF,rwN:rwN,gems:gl,ended:Date.now()>=new Date(a.end),started:nowA>=s0,
-  sleepMin:1440-awake,busyMin:awake-gen,genPlay:gen,planNow:totW?a.goal*elapsed/totW:0,gemsDone:gd,netAll:rwF-gd-gl,incomeLeft:rwF-rwN}}
+  max:MX.pt,maxB:MX.tot.b,free:{final:FR.pt,rw:rew(a,FR.pt),tot:FR.tot},cpp:cpp,rpp:rpp,stepCost:a.hpp>0?a.rstep*a.gpp/(hp*a.hpp):Infinity,
+  fullEq:Math.max(1,avF.reduce(function(s,x){return s+x},0)/(gen||1)),totW:totW,shr:function(i){return totW?refT*avA[i]/totW:0},sleepMin:1440-awake,busyMin:awake-gen,genPlay:gen,planNow:totW?refT*elapsed/totW:0,gemsDone:gd,netAll:rwF-gd-gl,netLeft:rwF-rwN-gl,incomeLeft:rwF-rwN}}
 function dayLast(C,d){var lo=C.base.getTime()+d*864e5,hi=lo+864e5,r=null;C.a.logs.forEach(function(l){if(l.t>=lo&&l.t<hi&&(!r||l.t>=r.t))r=l});return r}
 function prevLog(C,d){var lo=C.base.getTime()+d*864e5,r=null;C.a.logs.forEach(function(l){if(l.t<lo&&(!r||l.t>=r.t))r=l});return r}
 function actual(C,d){var x=dayLast(C,d);if(!x)return null;var p=prevLog(C,d),mg=false;if(p)mg=Math.floor((p.t-C.base.getTime())/864e5)<d-1;else mg=d>0;return{v:x.pt-(p?p.pt:0),merged:mg}}
@@ -397,19 +417,21 @@ function cdParts(){var a=C.a,s0=new Date(a.start),e0=new Date(a.end),now=Date.no
  var d=Math.floor(to/864e5),h=Math.floor(to%864e5/36e5),m=Math.floor(to%36e5/6e4),s=Math.floor(to%6e4/1e3);return{lab:lab,v:[d,h,m,s],over:now>=e0,frac:Math.min(1,Math.max(0,(now-s0)/(e0-s0)))}}
 function tickCd(){if(!C)return;var p=cdParts(),b=document.querySelectorAll('#cdt b');if(b.length===4)p.v.forEach(function(x,i){b[i].textContent=pd(x)})}
 /* ---------- 渲染 ---------- */
-function render(){C=calc();var a=C.a,pct=Math.max(0,Math.min(1,C.cur/a.goal)),ok=C.final>=a.goal-.5,i,cp=cdParts();
+function render(){C=calc();var a=C.a,pct=a.goal>0?Math.max(0,Math.min(1,C.cur/a.goal)):0,ok=C.final>=a.goal-.5,i,cp=cdParts();
  if(sel===null)sel=Math.max(0,Math.min(C.nD-1,C.today));
  var pa='M0 70C160 0 320 120 520 62S860 10 1000 66',tape='';
  var dev=C.cur-C.planNow,pm=C.avgG*C.P.mpg,leis=Math.max(0,C.avgAv-pm),leftMin=Math.max(0,a.min-C.cur),leftGoal=Math.max(0,a.goal-C.cur);
- var nd=Math.max(1,C.days.length),needMin=leftMin/nd,needGoal=leftGoal/nd,perG=C.P.hp;
- var vd=C.ended?'活动已落幕':!C.started?'活动尚未开始':ok?'按当前设置，预计可达成冲刺目标':'预计到结束还差 '+f(a.goal-C.final)+' pt（冲刺目标）';
+ var nd=C.fullEq,needMin=leftMin/nd,needGoal=leftGoal/nd,perG=C.P.hp;
+ var vd=C.ended?'活动已落幕':!C.started?'活动尚未开始':ok?'按当前设置，预计可达成冲刺目标':'预计到结束还差 '+f(a.goal-C.final)+' pt（冲刺目标）'+(C.max<a.goal?'；就算全程买心也只能到 '+f(C.max)+'，冲刺目标按当前设置达不到':'');
  var h='<div class="hero"><svg class="rib" viewBox="0 0 1000 120" preserveAspectRatio="none" aria-hidden="true"><path d="'+pa+'" fill="none" stroke="#ff6b3d" stroke-width="16"/><path d="'+pa+'" transform="translate(0,18)" fill="none" stroke="#26348a" stroke-width="9"/></svg>';
  h+='<div class="cartw"><div class="vt1" aria-hidden="true">出陣手帖</div><div class="vt2" aria-hidden="true">活動攻略</div>'+redFlower('-6%','-6%',80,.3)+redFlower('88%','64%',74,1)+redFlower('-8%','78%',52,2)+
   '<div class="cart" id="cart"><div class="ttl">EVENT · PLANNER</div>'+cartSvg(pct)+'<div class="plate"><span>距冲刺目标还差</span><b>'+f(leftGoal)+'</b><span>pt（目标 '+f(a.goal)+'）</span><u>進行 '+(pct*100).toFixed(1)+'%　·　轻点落花</u></div></div></div>';
  h+='<div class="side"><div class="cdp"><div class="lab"><span>'+cp.lab+'</span><small>'+esc(a.name)+'　'+dl(0)+' → '+dl(C.nD-1)+'</small></div><div class="cdt" id="cdt"><div><b class="'+(cp.v[0]>99?'l3':'')+'">'+pd(cp.v[0])+'</b><span>日</span></div><div><b>'+pd(cp.v[1])+'</b><span>时</span></div><div><b>'+pd(cp.v[2])+'</b><span>分</span></div><div><b>'+pd(cp.v[3])+'</b><span>秒</span></div></div><div class="tb"><i style="width:'+(cp.frac*100)+'%"></i></div><div class="tbl"><span>'+new Date(a.start).toLocaleString('zh-CN',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false})+' 开始</span><span>时间已走 '+Math.round(cp.frac*100)+'%</span><span>'+new Date(a.end).toLocaleString('zh-CN',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false})+' 结束</span></div>'+(C.ended?'<p style="margin:10px 0 0"><button class="go" id="fo" type="button">开启落幕仪式</button></p>':'')+'</div>';
  function rr(k,v,n){return'<div class="r"><dt>'+k+'</dt><dd>'+v+(n?'<small>'+n+'</small>':'')+'</dd></div>'}
  var ongo=C.started&&!C.ended,chip=ongo?(Math.abs(dev)<1?' <span class="chip ok">正好</span>':dev>0?' <span class="chip ok">领先 '+f(dev)+'</span>':' <span class="chip no">落后 '+f(-dev)+'</span>'):'';
- var CV=[['cur','已得',f(C.cur)+' pt',esc(vd)],['now','此刻应得',f(C.planNow)+' pt'+chip,'按冲刺目标和可打时间匀速算'],['left','距目标还差','最低 '+f(leftMin)+'<br>冲刺 '+f(leftGoal),ongo?'每天约 '+f(needMin)+' / '+f(needGoal)+' pt':''],['play','预测每天要打',f(C.avgG)+' 局 · 约 '+f(C.avgPts)+' pt','计划游戏 '+mm(pm)],['avail','每天可打',mm(C.avgAv),'睡觉 '+mm(C.sleepMin)+'，忙碌 '+mm(C.busyMin)],['leis','休闲时间',mm(leis),'可打 − 计划游戏'],['fin','预计最终',f(C.final)+' pt','预计报酬 '+f(C.rwF)+' 宝石'],['net','全程累计净收益',f(C.netAll)+' 宝石','预计报酬 − 已买心 '+f(C.gemsDone)+' − 后续买心 '+f(C.gems)],['cost','后续消耗',f(C.tot.g)+' 心 · '+f(C.tot.t)+' 票','自然回复 '+f(C.tot.nat)+' 颗；买心 '+C.tot.b+' 组'],['inc','后续收益',f(C.incomeLeft)+' 宝石','预计再得报酬；后续花费 '+f(C.gems)+' 宝石'],['rib','每天的节奏','','']],
+ var allPk=(a.packs||0)+C.tot.b,sg=function(v){return(v>0?'+':v<0?'−':'')+f(Math.abs(v))},rtn=C.P.ref==1?'最低目标':'冲刺目标',
+  worth=C.stepCost===Infinity?'无法估算':(C.rpp*(a.rstep>0?a.rstep:1)>=C.stepCost?'划算':'不划算'),
+  CV=[['cur','已得',f(C.cur)+' pt',esc(vd)],['now','此刻应得',f(C.planNow)+' pt'+chip,'按'+rtn+'和可打时间匀速算'],['left','距目标还差',(leftMin>0?'最低 '+f(leftMin):'最低 已达成')+'<br>冲刺 '+f(leftGoal),ongo?'折合每个完整的一天约 '+f(needMin)+' / '+f(needGoal)+' pt（首尾半天按实际可打时间折算）':''],['play','预测每天要打',f(C.avgG)+' 局 · 约 '+f(C.avgPts)+' pt','计划游戏 '+mm(pm)+(C.fullDays?'（按完整的一天算）':'')],['avail','每天可打',mm(C.avgAv),'= 24小时 − 睡觉 '+mm(C.sleepMin)+' − 忙碌 '+mm(C.busyMin)],['leis','休闲时间',mm(leis),'可打 − 计划游戏'],['fin','预计最终',f(C.final)+' pt','买心策略：'+BM[C.mode]+'；预计报酬 '+f(C.rwF)+' 宝石'],['free','不买心的话',f(C.free.final)+' pt',(C.free.final===C.final?'与预计最终相同，当前策略没有买心；':'只用自然回复和门票；')+'报酬 '+f(C.free.rw)+' 宝石'],['net','全程累计净收益',sg(C.netAll)+' 宝石','报酬 '+f(C.rwF)+' − 买心 '+f(C.gemsDone+C.gems)+'（共 '+f(allPk)+' 组，其中已买 '+f(a.packs||0)+'）'],['worth','买心划算吗',worth,Number.isFinite(C.stepCost)?'冲一档（'+f(a.rstep)+' pt）约花 '+f(C.stepCost)+' 宝石买心，只返 '+f(a.rgem)+' 宝石':'每组心数为 0'],['cost','后续消耗',f(C.tot.g)+' 心 · '+f(C.tot.t)+' 票','自然回复 '+f(C.tot.nat)+' 颗；买心 '+C.tot.b+' 组（'+f(C.gems)+' 宝石）'],['inc','后续收益',sg(C.netLeft)+' 宝石','再得报酬 '+f(C.incomeLeft)+' − 后续买心 '+f(C.gems)],['rib','每天的节奏','','']],
   cvOn=DB.P.cv||['cur','now','left','play','avail','leis','fin','net'];
  h+='<div class="vcs">';
  CV.forEach(function(c,ci){if(cvOn.indexOf(c[0])<0)return;h+=c[0]==='rib'?'<div class="vc wide t'+(ci%4)+'"><dt>'+c[1]+'</dt><div class="sub">'+dayRibbon(C.avgAv||C.genPlay,pm)+'</div></div>':'<div class="vc t'+(ci%4)+'"><dt>'+c[1]+'</dt><dd>'+c[2]+'</dd>'+(c[3]?'<small>'+c[3]+'</small>':'')+'</div>'});
@@ -417,20 +439,20 @@ function render(){C=calc();var a=C.a,pct=Math.max(0,Math.min(1,C.cur/a.goal)),ok
  el('#hero',h);
  var N=a.now||{pt:0,h:0,tk:0};
  el('#nowF','<label>当前 pt<input id="n-pt" type="number" inputmode="numeric" value="'+N.pt+'"></label><label>当前心数<input id="n-h" type="number" inputmode="numeric" value="'+N.h+'"></label><label>当前门票<input id="n-tk" type="number" inputmode="numeric" value="'+N.tk+'"></label><label>累计买心（组）<input id="n-pk" type="number" inputmode="numeric" value="'+(a.packs||0)+'"></label><button class="go" id="n-ok" type="button">记录此刻</button>');
- var g='',off=new Date(C.base).getDay(),base=a.goal/C.nD;
+ var g='',off=new Date(C.base).getDay();
  '日一二三四五六'.split('').forEach(function(w){g+='<div class="wd">'+w+'</div>'});for(i=0;i<off;i++)g+='<div></div>';
  for(i=0;i<C.nD;i++){var cl='c',v,st='',d=new Date(C.base.getTime()+i*864e5),lab=(i===0||d.getDate()===1)?(d.getMonth()+1)+'/'+d.getDate():d.getDate();
   if(i===sel)cl+=' s';if(i===C.today)cl+=' t';
-  if(i<=C.today&&C.started){var ac=actual(C,i);if(!ac){cl+=' m';v='缺'}else{v=fk(ac.v);cl+=' r'+(ac.merged?' mg':'');if(ac.v>=base)st='<span class="st">達</span>'}}
+  if(C.started&&(i<C.today||(i===C.today&&(C.ended||dayLast(C,i))))){var ac=actual(C,i);if(!ac){cl+=' m';v='缺'}else{v=fk(ac.v);cl+=' r'+(ac.merged?' mg':'');if(ac.v>=C.shr(i)-.5)st='<span class="st">達</span>'}}
   else{var rw=C.rows[i];cl+=' f';v=rw?fk(rw.pts):'—'}
   if(!st&&i===0)st='<span class="st k">开</span>';if(!st&&i===C.nD-1)st='<span class="st k">止</span>';
   g+='<button type="button" class="'+cl+'" data-i="'+i+'"><small>'+lab+'</small><b>'+v+'</b>'+st+'</button>'}
  el('#calg',g);detail();
- el('#calnote','红底为已记录的实际得分，紫底为预测，虚线“缺”是没有记录；“合”表示这天的数字合并了前几天没记录的部分，补录后会拆开。“達”＝达到把冲刺目标平均摊到每天的份额（'+f(base)+' pt）。点一天可以补录。');
+ el('#calnote','红底为已记录的实际得分，紫底为预测，虚线“缺”是没有记录；“合”表示这天的数字合并了前几天没记录的部分，补录后会拆开。“達”＝达到把'+(C.P.ref==1?'最低':'冲刺')+'目标按每天的可打时间摊开的份额（开始当天下午才开始、结束当天中午就结束，所以首尾两天的份额比较少）。点一天可以补录。');
  chart();params();manage();acts();orns();tickCd()}
-function detail(){var i=sel,r=C.rows[i],fut=i>C.today||!C.started,ac=actual(C,i),av=(i>=C.today&&!C.ended)?C.avF[i]:C.avA[i],h='<h3>'+dl(i)+(i===C.today?'（今天）':'')+(fut?' · 预测':' · 已发生')+'</h3><div class="tiles">';
+function detail(){var i=sel,r=C.rows[i],fut=i>C.today||!C.started||(i===C.today&&!C.ended&&!dayLast(C,i)),ac=actual(C,i),av=(i>=C.today&&!C.ended)?C.avF[i]:C.avA[i],h='<h3>'+dl(i)+(i===C.today?'（今天）':'')+(i===C.today&&!C.ended?(fut?' · 进行中，只算剩下的时间':' · 进行中'):fut?' · 预测':' · 已发生')+'</h3><div class="tiles">';
  var pm=r?(r.g+r.t)*C.P.mpg:0;
- if(r)h+=tile('平均摊目标',f(r.need)+' pt')+tile('预计局数',(r.g+r.t)+' 局','耗心 '+r.g+' · 门票 '+r.t+' · 买心 '+r.b+' 组')+tile('预计获得',f(r.pts)+' pt');
+ if(r)h+=tile('这天的份额',f(C.shr(i))+' pt','按可打时间摊')+tile('预计局数',(r.g+r.t)+' 局','耗心 '+r.g+' · 门票 '+r.t+' · 买心 '+r.b+' 组')+tile('预计获得',f(r.pts)+' pt');
  h+=tile('实际得分',ac?f(ac.v)+' pt':'无记录',ac&&ac.merged?'合并了前几天':'', 'var(--navy)')+tile('可打时间',mm(av),'','var(--sky)');
  if(r)h+=tile('计划游戏',mm(pm),'','var(--navy)')+tile('休闲时间',mm(Math.max(0,av-pm)),'可打 − 计划游戏','var(--mat)');
  h+='</div><div style="margin-top:10px">'+dayRibbon(av,pm)+'</div>';
@@ -466,13 +488,13 @@ function bg(){var s=ART.lines(11,1200,900,6,'#fff',1.3,.8),o='<svg viewBox="0 0 
 function orns(){Array.prototype.forEach.call(document.querySelectorAll('section.paper'),function(p,i){if(!p.querySelector('.orn')){var d=document.createElement('div');d.className='orn';d.innerHTML=ART.lines(31+i*7,200,160,2,i%2?'#26348a':'#ff6b3d',1.3,.8);p.insertBefore(d,p.firstChild)}})}
 function acts(){el('#act',Object.keys(DB.acts).map(function(k){return'<option value="'+k+'"'+(k===DB.cur?' selected':'')+'>'+esc(DB.acts[k].name)+'</option>'}).join(''))}
 /* ---------- 设定 ---------- */
-var FP=[['起床','wake','time'],['睡觉（可跨午夜）','sleep','time'],['每局用时（分钟）','mpg','number'],['耗心一局 pt','hp','number'],['门票一局 pt','tp','number'],['每颗心恢复（分钟）','rec','number'],['心槽上限','cap','number'],['允许买心','buy','sel']];
+var FP=[['起床','wake','time'],['睡觉（可跨午夜）','sleep','time'],['每局用时（分钟）','mpg','number'],['耗心一局 pt','hp','number'],['门票一局 pt','tp','number'],['每颗心恢复（分钟）','rec','number'],['心槽上限','cap','number'],['买心策略','bm','sel',[[0,'不买心'],[1,'买心冲刺目标'],[2,'只保最低目标'],[3,'划算才买']]],['此刻应得对照','ref','sel',[[0,'冲刺目标'],[1,'最低目标']]],['门票未用完','tks','sel',[[1,'累积到之后'],[0,'每天重置']]]];
 var FA=[['活动名','name','text'],['开始','start','datetime-local'],['结束','end','datetime-local'],['最低目标 pt','min','number'],['冲刺目标 pt','goal','number'],['每天门票（23:00 发）','tk','number'],['每组宝石','gpp','number'],['每组心数','hpp','number'],['报酬起点 pt','rstart','number'],['每档 pt','rstep','number'],['每档宝石','rgem','number'],['报酬封顶 pt','pcap','number']];
-function fld(o,k,l,t,sc){var v=o[k],c;if(t==='sel')c='<select data-s="'+sc+'" data-k="'+k+'"><option value="1"'+(+v?' selected':'')+'>允许</option><option value="0"'+(+v?'':' selected')+'>不买</option></select>';else c='<input data-s="'+sc+'" data-k="'+k+'" type="'+t+'" value="'+esc(v)+'">';return'<label>'+l+c+'</label>'}
-function params(){var h='<h3>我的作息</h3>',a=A(),P=DB.P;FP.forEach(function(x){h+=fld(P,x[1],x[0],x[2],'P')});
+function fld(o,k,l,t,sc,op){var v=o[k],c;if(t==='sel')c='<select data-s="'+sc+'" data-k="'+k+'">'+op.map(function(x){return'<option value="'+x[0]+'"'+(+v===x[0]?' selected':'')+'>'+x[1]+'</option>'}).join('')+'</select>';else c='<input data-s="'+sc+'" data-k="'+k+'" type="'+t+'" value="'+esc(v)+'">';return'<label>'+l+c+'</label>'}
+function params(){var h='<h3>我的作息</h3>',a=A(),P=DB.P;FP.forEach(function(x){h+=fld(P,x[1],x[0],x[2],'P',x[3])});
  h+='<h3>忙碌（不可玩）时间</h3><div class="bz">';P.busy.forEach(function(b,i){h+='<input data-bz="'+i+'.0" type="time" value="'+b[0]+'"> 到 <input data-bz="'+i+'.1" type="time" value="'+b[1]+'"><button class="sm" data-del="'+i+'" type="button">删除</button>'});h+='<button class="sm" id="addB" type="button">添加一段</button></div><h3>活动规则</h3>';
- FA.forEach(function(x){h+=fld(a,x[1],x[0],x[2],'A')});el('#pg',h);
- el('#rules','门票每天 23:00 发放、未用完累积；买心超出上限期间自然回复暂停；活动开始时心槽满。可打时间 = 起床到睡觉 − 忙碌；休闲时间 = 可打时间 − 计划游戏时间。“此刻应得”是把冲刺目标按可打时间匀速摊开算出来的进度。'+(+DB.P.buy?'':'（已设为不买心）'))}
+ FA.forEach(function(x){h+=fld(a,x[1],x[0],x[2],'A',x[3])});el('#pg',h);
+ el('#rules','门票每天 23:00 发放（累积或重置可选）；心满槽后自然回复暂停；活动开始时心槽满。可打时间 = 起床到睡觉 − 忙碌；休闲时间 = 可打时间 − 计划游戏时间。买心策略：不买心 / 买到冲刺目标 / 只买到最低目标 / 划算才买（买心每分报酬高于花费才买，并保证最低目标）。报酬：pt 达到“报酬起点”就发第一份，之后每多满“每档 pt”再发一份。净收益 = 预计报酬 − 买心花的宝石（含已买）。“此刻应得”按所选目标和可打时间匀速摊开算。');}
 function manage(){var a=A(),h='',L=a.logs.slice().sort(function(x,y){return y.t-x.t}),old=[];
  Object.keys(DB.acts).forEach(function(k){var x=DB.acts[k];if(k!==DB.cur&&new Date(x.end)<Date.now())old.push(k)});
  var cur=new Date(a.start)<=Date.now();
@@ -480,7 +502,7 @@ function manage(){var a=A(),h='',L=a.logs.slice().sort(function(x,y){return y.t-
  h+='<h3>本场的记录（'+L.length+' 条，勾选后删除）</h3>';
  if(L.length){h+='<div class="lgs">'+L.map(function(l){var d=new Date(l.t);return'<label><input type="checkbox" data-lg="'+l.t+'"> '+(d.getMonth()+1)+'/'+d.getDate()+' '+pd(d.getHours())+':'+pd(d.getMinutes())+'　<b>'+f(l.pt)+' pt</b>'+(l.m?'　<small>补录</small>':'')+'</label>'}).join('')+'</div><div class="bz"><button class="sm" id="delSel" type="button">删除勾选的记录</button><button class="sm" id="delAll" type="button">清空本场全部记录</button></div>'}else h+='<p class="note" style="grid-column:1/-1">还没有记录。</p>';
  h+='<h3>活动</h3><div class="bz">'+Object.keys(DB.acts).map(function(k){return'<span>'+esc(DB.acts[k].name)+(k===DB.cur?'（当前）':'')+'</span>'+(k===DB.cur?'':'<button class="sm" data-dact="'+k+'" type="button">删除</button>')}).join('')+'</div>';
- h+='<h3>跨设备：导出 / 导入</h3><div class="bz col"><button class="go sm" id="exCopy" type="button">复制全部数据</button><button class="sm" id="exDl" type="button">下载为文件</button><span class="note">在新设备打开这个页面，到这里导入就行。</span></div><textarea class="ex" id="exTa" readonly style="grid-column:1/-1"></textarea><textarea class="ex" id="imTa" placeholder="在这里粘贴导出的数据，或者选择文件" style="grid-column:1/-1"></textarea><div class="bz col"><input type="file" id="imFile" accept=".json,application/json,text/plain"><button class="go sm" id="imGo" type="button">导入并替换本机数据</button></div>';
+ h+='<h3>跨设备：导出 / 导入</h3><div class="bz col"><button class="go sm" id="exCopy" type="button">复制全部数据</button><button class="sm" id="exDl" type="button">下载为文件（.json）</button><span class="note">在新设备打开这个页面，到这里导入就行。</span></div><textarea class="ex" id="exTa" readonly style="grid-column:1/-1" aria-label="导出的数据"></textarea><textarea class="ex" id="imTa" placeholder="粘贴导出的数据，或点下面“选择文件”从本机读取 .json（也可以把文件拖进这里）" style="grid-column:1/-1" aria-label="要导入的数据"></textarea><p class="note" id="imInfo" style="grid-column:1/-1;margin:0"></p><div class="bz col"><input type="file" id="imFile" accept=".json,application/json,text/plain,.txt" hidden><button class="sm" id="imPick" type="button">选择文件…</button><button class="go sm" id="imGo" type="button">导入并替换本机数据</button></div>';
  el('#dg',h);var xt=$('#exTa');if(xt)xt.value=JSON.stringify(DB)}
 /* ---------- 落幕：数据 ---------- */
 var TIERS=[[2e6,'天下无双·满开审神者','整座本丸都被你的樱花埋了','无双'],[1.5e6,'极之审神者','练度高到近侍都得仰头看','极'],[1e6,'练度已满','刀装全开，万屋掌柜见你来了都提前开灯','满练'],[6e5,'夜战名手','夜里的本丸，灯是你一个人点的','夜战'],[310000,'凯旋归阵','带着宝石回城，连溯行军都目送你','凯旋'],[290000,'平安归阵','刚好够线，刀剑男士们一个都没掉队','归阵'],[0,'磨刀待战','刀还在鞘里，不过磨得挺亮','磨刀']];
@@ -786,7 +808,16 @@ function arm(b,fn,txt){if(b.dataset.armed){delete b.dataset.armed;fn();return}b.
 function petals(){var c=$('#cart');if(!c)return;for(var i=0;i<16;i++){var p=document.createElement('i');p.className='petal';p.style.left=(35+Math.random()*50)+'%';p.style.top=(14+Math.random()*16)+'%';p.style.setProperty('--dx',(-90+Math.random()*60)+'px');p.style.setProperty('--dy',(160+Math.random()*120)+'px');p.style.animationDelay=Math.random()*.5+'s';c.appendChild(p);setTimeout(function(q){q.remove()}.bind(null,p),3400)}}
 function mkCard(){var S=FS.S,T=FS.T,fo=(!FS.demo&&FS.a.fort)||FS.fort;$('#mk').innerHTML='<p>正在绘制纪念卡…</p>';var cv=document.createElement('canvas');cv.width=1080;cv.height=1620;
  drawCard(cv,S,T,fo,function(){cv.toBlob(function(b){if(!b)return;var u=URL.createObjectURL(b);$('#mk').innerHTML='<img class="cimg" alt="纪念卡" src="'+u+'"><br><button class="go" id="sv" type="button" style="margin-top:10px">保存为图片</button><p class="note" id="svh" style="color:#cfc6ff">保存没有反应时，可以长按或右键上面的图片另存。</p>';
-  $('#sv').onclick=function(){Promise.resolve(DLC).then(function(d){if(!d){$('#svh').textContent='当前环境不能直接保存，请长按或右键图片另存。';return}return d.save({filename:'活动纪念卡.png',data:b}).then(function(){toast('已提交保存')},function(e){if(!(e&&e.code==='declined'))$('#svh').textContent='保存失败，请长按或右键图片另存。'})})}},'image/png')})}
+  $('#sv').onclick=function(){saveFile('活动纪念卡.png',b,function(m){$('#svh').textContent=m+'；也可以长按或右键上面的图片另存。'})}},'image/png')})}
+function getDL(){if(DLC)return Promise.resolve(DLC);try{if(window.claude&&window.claude.use)return window.claude.use('downloads').then(function(d){DLC=d;return d},function(){return null})}catch(e){}return Promise.resolve(null)}
+function saveFile(name,blob,fail){var anchor=function(){try{var u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;a.style.display='none';document.body.appendChild(a);a.click();setTimeout(function(){a.remove();URL.revokeObjectURL(u)},5000);return true}catch(e){return false}};
+ return getDL().then(function(d){if(!d){anchor();fail('这里不能弹出保存窗口，已尝试直接下载；没有反应请用“复制全部数据”');return}
+  return d.save({filename:name,data:blob}).then(function(){toast('已提交保存，请在弹窗里确认')},function(e){if(e&&e.code==='declined')return;if(e&&(e.code==='unavailable'||e.code==='not_granted'||e.code==='capability_disabled'||e.code==='capability_removed')){anchor();fail('保存窗口不可用，已尝试直接下载；没有反应请用“复制全部数据”')}else fail('保存失败（'+(e&&e.code||'未知')+'），请改用复制')})})}
+function impInfo(raw){var o;try{o=JSON.parse(raw)}catch(e){return{err:'这不是有效的数据文件'}}if(o&&o.json&&typeof o.json==='string'){try{o=JSON.parse(o.json)}catch(e){return{err:'这不是有效的数据文件'}}}
+ if(!o||!o.acts||!Object.keys(o.acts).length)return{err:'数据里没有活动'};var n=0;Object.keys(o.acts).forEach(function(k){n+=(o.acts[k].logs||[]).length});return{o:o,acts:Object.keys(o.acts).length,logs:n,ts:o.ts||0}}
+function showImp(){var r=impInfo($('#imTa').value.trim()),b=$('#imInfo');if(!b)return;if(!$('#imTa').value.trim()){b.textContent='';return}
+ if(r.err){b.textContent=r.err;return}var ts=r.ts?new Date(r.ts):null,old=r.ts&&DB.ts&&r.ts<DB.ts;b.textContent='读到 '+r.acts+' 个活动、共 '+r.logs+' 条记录'+(ts?'，导出于 '+(ts.getMonth()+1)+'/'+ts.getDate()+' '+pd(ts.getHours())+':'+pd(ts.getMinutes()):'')+(old?'。注意：这份数据比本机的旧，导入会覆盖掉本机较新的内容':'。')}
+function readFile(file){if(!file)return;var fr=new FileReader();fr.onload=function(){$('#imTa').value=String(fr.result||'');showImp();toast('文件已读入，确认无误后点“导入并替换”')};fr.onerror=function(){toast('读取文件失败')};fr.readAsText(file)}
 function pushRec(a,pt,h,tk){var t=Date.now();a.logs=a.logs.filter(function(l){return Math.abs(l.t-t)>3e4});a.logs.push({t:t,pt:pt});a.now={pt:pt,h:h,tk:tk,t:t}}
 document.addEventListener('click',function(e){var t=e.target,c=t.closest&&t.closest('[data-i]'),a=A();
  if(c&&c.classList.contains('c')){sel=+c.dataset.i;render();return}
@@ -805,8 +836,9 @@ document.addEventListener('click',function(e){var t=e.target,c=t.closest&&t.clos
   a.logs=a.logs.filter(function(l){return!(l.m&&l.t>=lo&&l.t<lo+864e5)});a.logs.push({t:tm,pt:+v,m:1});syncNow(a);save();render();toast('已补录 '+dl(i)+'：'+f(+v)+' pt')}
  if(id==='bf-del'){var i2=+t.dataset.i,lo2=C.base.getTime()+i2*864e5;a.logs=a.logs.filter(function(l){return!(l.t>=lo2&&l.t<lo2+864e5)});syncNow(a);save();render();toast('已删除这天的记录')}
  if(id==='exCopy'){var tv=JSON.stringify(DB);var ok=function(){toast('已复制，到新设备粘贴导入')};var fb=function(){var x=$('#exTa');x.removeAttribute('readonly');x.select();try{document.execCommand('copy');ok()}catch(e){toast('请手动全选复制')}x.setAttribute('readonly','')};try{navigator.clipboard.writeText(tv).then(ok,fb)}catch(e){fb()}}
- if(id==='exDl'){var bl=new Blob([JSON.stringify(DB)],{type:'application/json'});Promise.resolve(DLC).then(function(d){if(!d){toast('当前环境不能直接下载，请用“复制全部数据”');return}return d.save({filename:'本丸出陣手帖-数据.json',data:bl}).then(function(){toast('已提交保存')},function(e){if(!(e&&e.code==='declined'))toast('保存失败，请改用复制')})})}
- if(id==='imGo'){var raw=$('#imTa').value.trim();if(!raw){toast('先粘贴数据或选择文件');return}var o;try{o=JSON.parse(raw)}catch(e){toast('这不是有效的数据');return}if(!o||!o.acts||!Object.keys(o.acts).length){toast('数据里没有活动');return}arm(t,function(){DB=fix(o);sel=null;save();render();toast('导入完成')},'再点一次，替换本机数据')}
+ if(id==='exDl'){var bl=new Blob([JSON.stringify(DB)],{type:'application/json'}),dn=new Date();saveFile('本丸出陣手帖-'+dn.getFullYear()+pd(dn.getMonth()+1)+pd(dn.getDate())+'.json',bl,function(m){toast(m);var x=$('#exTa');if(x){x.focus();x.select()}})}
+ if(id==='imGo'){var raw=$('#imTa').value.trim();if(!raw){toast('先选择文件或粘贴数据');return}var r=impInfo(raw);if(r.err){toast(r.err);return}arm(t,function(){DB=fix(r.o);sel=null;save();render();toast('导入完成，共 '+r.acts+' 个活动')},'再点一次，替换本机数据')}
+ if(id==='imPick'){$('#imFile').click()}
  if(id==='addB'){DB.P.busy.push(['20:00','21:00']);save();render()}
  if(t.dataset&&t.dataset.del!==undefined){DB.P.busy.splice(+t.dataset.del,1);save();render()}
  if(id==='delSel'){var ks=Array.prototype.map.call(document.querySelectorAll('[data-lg]:checked'),function(x){return+x.dataset.lg});if(!ks.length){toast('先勾选要删除的记录');return}arm(t,function(){a.logs=a.logs.filter(function(l){return ks.indexOf(l.t)<0});syncNow(a);save();render();toast('已删除 '+ks.length+' 条')},'再点一次，删除 '+ks.length+' 条')}
@@ -818,11 +850,16 @@ document.addEventListener('click',function(e){var t=e.target,c=t.closest&&t.clos
  if(id==='na-ok'){var nm=$('#na-n').value.trim(),s=$('#na-s').value,en=$('#na-e').value;if(!nm){toast('先给新活动起个名字');return}
   var ns=s?new Date(s):new Date(Math.ceil(Date.now()/36e5)*36e5),ne=en?new Date(en):new Date(ns.getTime()+21*864e5),n=JSON.parse(JSON.stringify(a));n.name=nm;n.start=iso(ns);n.end=iso(ne);n.logs=[];n.packs=0;n.fort=null;n.now={pt:0,h:DB.P.cap,tk:n.tk,t:ns.getTime()};
   var nid='a'+Date.now();DB.acts[nid]=n;DB.cur=nid;sel=null;$('#modal').hidden=true;save();render();window.scrollTo({top:0,behavior:'smooth'});toast('已新建并切换到「'+nm+'」')}});
+document.addEventListener('input',function(e){if(e.target.id==='imTa')showImp()});
+document.addEventListener('dragover',function(e){if(e.target.id==='imTa')e.preventDefault()});
+document.addEventListener('drop',function(e){if(e.target.id==='imTa'){e.preventDefault();var fl=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];if(fl)readFile(fl)}});
 document.addEventListener('toggle',function(e){if(e.target.id==='cvsel')window.__cvo=e.target.open},true);
 document.addEventListener('change',function(e){var t=e.target;
  if(t.dataset&&t.dataset.cv){DB.P.cv=Array.prototype.map.call(document.querySelectorAll('[data-cv]:checked'),function(x){return x.dataset.cv});save();render();return}
- if(t.id==='imFile'&&t.files&&t.files[0]){var fr=new FileReader();fr.onload=function(){$('#imTa').value=String(fr.result||'');toast('文件已读入，点“导入并替换”')};fr.readAsText(t.files[0]);return}
- if(t.dataset.s){var o=t.dataset.s==='P'?DB.P:A(),k=t.dataset.k;o[k]=t.type==='number'||t.tagName==='SELECT'?(parseFloat(t.value)||0):t.value;save();render()}
+ if(t.id==='imFile'&&t.files&&t.files[0]){readFile(t.files[0]);t.value='';return}
+ if(t.dataset.s){var o=t.dataset.s==='P'?DB.P:A(),k=t.dataset.k;
+  if(t.dataset.s==='A'&&(k==='start'||k==='end')){var ns1=k==='start'?t.value:o.start,ne1=k==='end'?t.value:o.end;if(!t.value||!(new Date(ne1)>new Date(ns1))){toast('结束时间要晚于开始时间');render();return}}
+  if(t.type==='number'&&(parseFloat(t.value)<0||t.value==='')){toast('这一项不能为负或留空');render();return}o[k]=t.type==='number'||t.tagName==='SELECT'?(parseFloat(t.value)||0):t.value;save();render()}
  if(t.dataset.bz){var p=t.dataset.bz.split('.');DB.P.busy[+p[0]][+p[1]]=t.value;save();render()}
  if(t.id==='act'){DB.cur=t.value;sel=null;save();render()}});
 /* ---------- 启动 ---------- */
@@ -839,7 +876,7 @@ setInterval(tickCd,1000);
 setInterval(function(){var ae=document.activeElement;if(ae&&/INPUT|SELECT|TEXTAREA/.test(ae.tagName)&&!$('#fin').classList.contains('on'))return;if($('#fin').classList.contains('on'))return;render()},60000);
 try{if(window.claude&&window.claude.use){
  window.claude.use('downloads').then(function(d){DLC=d}).catch(function(){})}}catch(e){}
-window.__app={get DB(){return DB},get C(){return C},fin:fin,pick:pick,board:board,render:render};
+window.__app={get DB(){return DB},set DB(v){DB=fix(v)},get C(){return C},calc:calc,fin:fin,pick:pick,board:board,render:render};
 })();
 </script>
 
