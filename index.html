@@ -451,14 +451,14 @@ function calc(a,pmo){a=a||A();var P=pmo===undefined?DB.P:Object.assign({},DB.P,{
  var dev0=(N.pt-dsPt)-pn,planPt=nowA<s0?pt0:pt0-pn;
  var FR=sim(0,0,undefined,undefined,undefined,undefined,{pt:planPt,dev:dev0}),PL=mode===0?FR:sim(mode,0,undefined,undefined,undefined,undefined,{pt:planPt,dev:dev0});
  if(mode===3&&hpk>0){var T1=nextT(FR.pt);if(T1<=a.pcap&&Math.ceil((T1-FR.pt)/hpk)*a.gpp<a.rgem)tgt=Math.max(tgt,T1)}
- /* 保最低目标：不买心也到不了目标时，才按缺口买，并用二分找出刚好够的组数（不多买） */
- function fit(m,P0){var Q=P0;if((m===2||m===3)&&Q.pt<tgt&&hpk>0){var hi=Math.ceil((tgt-Q.pt)/hpk),it=0;while(it++<10){Q=sim(m,hi,undefined,undefined,undefined,undefined,{pt:planPt,dev:dev0});if(Q.pt>=tgt)break;hi+=Math.ceil((tgt-Q.pt)/hpk)}
-  if(Q.pt>=tgt){var lo=0;while(lo<hi){var mid=(lo+hi)>>1;if(sim(m,mid,undefined,undefined,undefined,undefined,{pt:planPt,dev:dev0}).pt>=tgt)hi=mid;else lo=mid+1}Q=sim(m,hi,undefined,undefined,undefined,undefined,{pt:planPt,dev:dev0})}}return Q}
+ /* 保最低目标：不买心也到不了目标时，才按缺口买，并用二分找出刚好够的组数（不多买）；wb/dl/avM/init 可指定窗与初始状态 */
+ function fit(m,P0,wb,dl,avM,init){wb=wb||byD;dl=dl||days;avM=avM||avF;init=init||{pt:planPt,dev:dev0};var Q=P0;if((m===2||m===3)&&Q.pt<tgt&&hpk>0){var hi=Math.ceil((tgt-Q.pt)/hpk),it=0;while(it++<10){Q=sim(m,hi,undefined,wb,dl,avM,init);if(Q.pt>=tgt)break;hi+=Math.ceil((tgt-Q.pt)/hpk)}
+  if(Q.pt>=tgt){var lo=0;while(lo<hi){var mid=(lo+hi)>>1;if(sim(m,mid,undefined,wb,dl,avM,init).pt>=tgt)hi=mid;else lo=mid+1}Q=sim(m,hi,undefined,wb,dl,avM,init)}}return Q}
  function netOf(Q){return rew(a,Q.pt)-Q.tot.b*a.gpp}
  PL=fit(mode,PL);
  if(mode===3){var alt=fit(2,FR);if(netOf(alt)>netOf(PL))PL=alt;if(FR.pt>=a.min&&netOf(FR)>netOf(PL))PL=FR}
- var rows=PL.rows,tot=PL.tot,pt=PL.pt,MX=(mode===1&&+P.pm===0)?PL:sim(1,0,0,undefined,undefined,undefined,{pt:planPt,dev:dev0});
- var SA=sim(mode,0,undefined,saWb,saDays,avA,{h:cap,tk:a.tk,pt:planPt,dev:dev0});
+ var SA=fit(mode,sim(mode,0,undefined,saWb,saDays,avA,{pt:planPt,dev:dev0}),saWb,saDays,avA,{pt:planPt,dev:dev0});
+ var rows=SA.rows,tot=SA.tot,pt=SA.pt,MX=(mode===1&&+P.pm===0)?PL:sim(1,0,0,undefined,undefined,undefined,{pt:planPt,dev:dev0});
  /* 每天平均：只取完整的一天（首尾不完整的天会把平均拉低），没有完整天时才用全部 */
  var wk=tp(P.wake),sl=tp(P.sleep);if(sl<=wk)sl+=1440;var awake=sl-wk,gen=sum(wins(P,2880,4320));
  var fd=days.filter(function(d){return avF[d]>=gen-1&&avA[d]>=gen-1}),use=fd.length?fd:days,n=use.length||1,sm=function(k){return use.reduce(function(s,d){return s+rows[d][k]},0)};
