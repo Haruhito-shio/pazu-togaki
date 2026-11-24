@@ -50,19 +50,18 @@ button.sm{padding:3px 12px;font-size:13px}button:disabled{opacity:.45;cursor:def
 .cdt span{font-size:13px;color:var(--dim);letter-spacing:.3em}
 .tb{height:10px;border-radius:99px;background:#eadff2;overflow:hidden}.tb i{display:block;height:100%;background:repeating-linear-gradient(115deg,var(--ora) 0 12px,var(--pink) 12px 24px);border-radius:99px}
 .tbl{display:flex;justify-content:space-between;font-size:12px;color:var(--dim);margin-top:4px}
-.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
-.tile{position:relative;background:rgba(255,255,255,.92);border-radius:16px;padding:10px 12px 10px 16px;border:1.5px solid var(--hair);overflow:hidden;min-width:0}
-.tile::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:var(--c,var(--ora))}
-.tile dt{font-size:12.5px;color:var(--dim)}.tile dd{margin:0;font:800 21px/1.25 var(--f);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
-.tile dd small{display:block;font:500 12px/1.4 var(--g);color:var(--dim)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:8px}
+.tile{position:relative;background:rgba(255,255,255,.92);border-radius:13px;padding:8px 10px 8px 13px;border:1.5px solid var(--hair);overflow:hidden;min-width:0}
+.tile::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--c,var(--ora))}
+.tile dt{font-size:11.5px;color:var(--dim)}.tile dd{margin:0;font:800 17px/1.25 var(--f);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.tile dd small{display:block;font:500 11.5px/1.4 var(--g);color:var(--dim)}
 .tile.w{grid-column:1/-1}
 .chip{display:inline-block;padding:1px 10px;border-radius:99px;font:700 13px var(--g);vertical-align:middle}
 .chip.ok{background:#d8f2e4;color:#1d7a50}.chip.no{background:#ffe0d6;color:#c2410c}
 .dr2{display:flex;height:30px;border-radius:99px;overflow:hidden;border:2px solid var(--navy);background:#fff}
 .dr2 i{display:block;height:100%}
 .lg2{display:flex;gap:6px 14px;flex-wrap:wrap;font-size:12.5px;color:var(--dim);margin-top:6px}.lg2 span:before{content:"";display:inline-block;width:11px;height:11px;border-radius:3px;background:var(--c);margin-right:5px;vertical-align:-1px}
-.now{display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin:6px 0 4px;padding:12px 14px;background:rgba(255,255,255,.8);border-radius:18px;border:1.5px dashed #b6aed3}
-.now label{display:grid;font-size:12.5px;color:var(--dim);gap:2px}.now input{width:118px;font-size:17px}
+
 .paper{position:relative;background:var(--paper);border-radius:6px 28px 6px 28px;padding:34px 20px 22px;margin:26px 0;box-shadow:0 22px 40px -26px rgba(38,52,138,.55),0 0 0 1.5px #ecdcc4;overflow:hidden}
 .paper::before{content:"";position:absolute;left:-10%;right:-10%;top:0;height:14px;background:repeating-linear-gradient(115deg,var(--ora) 0 22px,var(--navy) 22px 44px)}
 .paper h2{margin:0 0 12px;font:800 24px var(--f);letter-spacing:.14em;position:relative}
@@ -209,14 +208,23 @@ nav a{color:var(--navy);text-decoration:none;font-weight:700;font-size:14px;lett
 #bgw{position:absolute;inset:0;opacity:0;transition:opacity .6s ease;--mx:50vw;--my:40vh;-webkit-mask-image:radial-gradient(circle 210px at var(--mx) var(--my),#000 0,rgba(0,0,0,.7) 40%,transparent 100%);mask-image:radial-gradient(circle 210px at var(--mx) var(--my),#000 0,rgba(0,0,0,.7) 40%,transparent 100%)}
 #bgw svg{width:100%;height:100%;display:block;filter:drop-shadow(0 0 5px rgba(196,170,230,.85)) drop-shadow(0 0 14px rgba(255,190,214,.55))}
 @media(hover:none){#bgw{-webkit-mask-image:radial-gradient(circle 150px at var(--mx) var(--my),#000 0,rgba(0,0,0,.7) 40%,transparent 100%);mask-image:radial-gradient(circle 150px at var(--mx) var(--my),#000 0,rgba(0,0,0,.7) 40%,transparent 100%)}}
-.vcs{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:12px}
-.vc{position:relative;margin:0;padding:12px 14px 12px;border-radius:20px;background:rgba(255,255,255,.82);border:1.5px dashed #b6aed3;box-shadow:0 14px 28px -20px rgba(80,70,140,.5);min-width:0;overflow:hidden}
-.vc:before{content:"";position:absolute;left:14px;top:0;width:34px;height:4px;border-radius:0 0 4px 4px;background:var(--ora)}
-.vc.t1:before{background:#9a8fe0}.vc.t2:before{background:#f2a1b8}.vc.t3:before{background:#7cc6b0}
-.vc dt{color:var(--dim);font-size:12.5px;margin:4px 0 2px;letter-spacing:.08em}
-.vc dd{margin:0;font:800 21px/1.3 var(--f);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
-.vc small{display:block;margin-top:3px;font:500 12px/1.5 var(--g);color:var(--dim)}
-.vc.wide{grid-column:1/-1}.vc .sub{padding-top:4px}
+.rec{margin:6px 0 4px;padding:16px 16px 12px;background:rgba(255,255,255,.8);border-radius:20px;border:1.5px dashed #b6aed3;display:grid;gap:14px}
+.rec-form{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
+.rec-form label{display:grid;font-size:12.5px;color:var(--dim);gap:2px}
+.rec-form input{width:118px;font-size:17px}
+.rec-note{margin:0;font:500 12.5px/1.6 var(--g);color:var(--dim)}
+.lines{display:grid;gap:10px}
+.para{margin:0;font-size:14.5px;line-height:1.8;color:var(--ink);overflow-wrap:anywhere}
+.para .lv{font:800 16px/1.5 var(--f);color:var(--navy);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.para .lv.pos{color:#1d7a50}
+.para .lv.neg{color:#c2410c}
+.para .lv.acc{color:var(--ora2)}
+.para .lv.hot{color:var(--ora2)}
+.lmsg.wide{display:block}
+.lmsg .lk{color:var(--dim);font-size:12.5px;letter-spacing:.08em}
+.lmsg .sub{padding-top:3px}
+.note-list{margin:6px 0 0;padding-left:18px;display:grid;gap:5px;font-size:12.5px;color:var(--dim);line-height:1.6}
+.note-list b{color:var(--ink)}
 .cvsel{margin:12px 0 0;border-radius:16px;background:rgba(255,255,255,.7);border:1.5px dashed #b6aed3;padding:8px 14px}
 .cvsel summary{cursor:pointer;font:700 14px var(--g);letter-spacing:.1em;color:var(--navy);list-style:none}
 .cvsel summary::before{content:"＋ ";color:var(--ora)}.cvsel[open] summary::before{content:"－ "}
@@ -224,7 +232,7 @@ nav a{color:var(--navy);text-decoration:none;font-weight:700;font-size:14px;lett
 .cvs label{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:99px;background:#fff;border:1.5px dashed #c9c1e0;font-size:13px;cursor:pointer}
 .cvs label:has(input:checked){background:#e9e4fb;border-style:solid;border-color:#a49ed8}
 .cvs input{accent-color:#7a6cd0;margin:0}
-@media(max-width:760px){.vcs{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.vc dd{font-size:18px}}
+@media(max-width:760px){.lines{gap:8px}.para .lv{font-size:15px}}
 
 .guide{margin:10px 0 0;border-radius:16px;background:rgba(255,255,255,.78);border:1.5px dashed #b6aed3;padding:0 14px;box-shadow:0 10px 22px -18px rgba(80,70,140,.5)}
 .guide summary{display:flex;align-items:center;gap:8px;min-height:38px;cursor:pointer;list-style:none;font:500 13.5px var(--g);color:var(--dim)}
@@ -283,9 +291,9 @@ details#dd .stw{margin-top:10px}details#dd summary{cursor:pointer}
 <div id="bg" aria-hidden="true"></div><div id="pet" aria-hidden="true"></div>
 <main>
 <div class="top"><select id="act" aria-label="切换活动"></select><button id="newA" type="button">新建活动</button><button id="prev" type="button">预览落幕</button><span class="sync" id="sync">数据存在本机，换设备用“数据管理”导出/导入</span></div>
-<details class="guide" id="guide"><summary><b>第一次用？</b>30 秒看懂怎么用<i>展开</i></summary><div class="gb"><ol><li><b>改设定</b>：滑到最下面「本丸设定」，填你的起床、睡觉、没空的时间，核对活动规则。</li><li><b>记进度</b>：打了一会儿，在下面输入框填当前 pt、心数、门票，点「记录此刻」。</li><li><b>看战况</b>：「此刻应得」是现在应有的分数，下面会写领先还是落后；卡片可以自己选显示哪些。</li><li><b>漏记了</b>：日历里点那一天，填这天结束时的累计 pt 补录。</li><li><b>换设备</b>：「数据管理」里下载文件或复制文本，到新设备导入（是替换，不是合并）。</li></ol><p>几件事先知道：开始当天下午才开始、结束当天中午就结束，首尾两天按真实小时算；pt 到「报酬起点」就发第一份，之后每满一档再发一份；买心不一定划算，在设定里选「买心策略」，「买心划算吗」那张卡会告诉你。所有数字都是按你填的设定估算的。</p></div></details>
+<details class="guide" id="guide"><summary><b>第一次用？</b>30 秒看懂怎么用<i>展开</i></summary><div class="gb"><ol><li><b>改设定</b>：滑到最下面「本丸设定」，填你的起床、睡觉、没空的时间，核对活动规则。</li><li><b>记进度</b>：打了一会儿，在下面输入框填当前 pt、心数、门票，点「记录此刻」。</li><li><b>看战况</b>：「此刻应得」是现在应有的分数，下面会写领先还是落后；字段可以自己选显示哪些。</li><li><b>漏记了</b>：日历里点那一天，填这天结束时的累计 pt 补录。</li><li><b>换设备</b>：「数据管理」里下载文件或复制文本，到新设备导入（是替换，不是合并）。</li></ol><p>几件事先知道：开始当天下午才开始、结束当天中午就结束，首尾两天按真实小时算；pt 到「报酬起点」就发第一份，之后每满一档再发一份；买心不一定划算，在设定里选「买心策略」，「买心划算吗」那项会告诉你。所有数字都是按你填的设定估算的。</p></div></details>
 <div id="hero"></div>
-<div id="nowF" class="now"></div>
+<section class="rec" id="recPanel"></section>
 <details class="strat" id="strat" open><summary><span class="sst">打法选择<em>Strategy</em></span><span class="ssv" id="stratCur"><i class="sf">使用中</i><b>—</b></span><i class="sch" aria-hidden="true"></i></summary><div id="stratb"></div></details>
 <section class="paper" id="cal"><h2>出陣日历<em>Calendar</em></h2><div class="cal" id="calg"></div><div class="det" id="det"></div><p class="note" id="calnote"></p></section>
 <section class="paper" id="trend"><h2>累计 pt 走势<em>Trend</em></h2><div id="chart"></div><div class="lg"><span><i></i>实际记录</span><span><i style="border-top-style:dashed;border-color:#26348a"></i>预测</span><span><i style="border-color:#e2a83b"></i>此刻</span><span>移动或点按图表查看每天</span></div></section>
@@ -496,16 +504,30 @@ function render(){C=calc();var a=C.a,pct=a.goal>0?Math.max(0,Math.min(1,C.cur/a.
  h+='<div class="side"><div class="cdp"><div class="lab"><span>'+cp.lab+'</span><small>'+esc(a.name)+'　'+dl(0)+' → '+dl(C.nD-1)+'</small></div><div class="cdt" id="cdt"><div><b class="'+(cp.v[0]>99?'l3':'')+'">'+pd(cp.v[0])+'</b><span>日</span></div><div><b>'+pd(cp.v[1])+'</b><span>时</span></div><div><b>'+pd(cp.v[2])+'</b><span>分</span></div><div><b>'+pd(cp.v[3])+'</b><span>秒</span></div></div><div class="tb"><i style="width:'+(cp.frac*100)+'%"></i></div><div class="tbl"><span>'+new Date(a.start).toLocaleString('zh-CN',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false})+' 开始</span><span>时间已走 '+Math.round(cp.frac*100)+'%</span><span>'+new Date(a.end).toLocaleString('zh-CN',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false})+' 结束</span></div>'+(C.ended?'<p style="margin:10px 0 0"><button class="go" id="fo" type="button">开启落幕仪式</button></p>':'')+'</div>';
  function rr(k,v,n){return'<div class="r"><dt>'+k+'</dt><dd>'+v+(n?'<small>'+n+'</small>':'')+'</dd></div>'}
  var ongo=C.started&&!C.ended,chip=ongo?(Math.abs(dev)<1?' <span class="chip ok">正好</span>':dev>0?' <span class="chip ok">领先 '+f(dev)+'</span>':' <span class="chip no">落后 '+f(-dev)+'</span>'):'';
+ var acT=actual(C,C.today),todayGot=acT?Math.max(0,acT.v):0;
+ var rwT=C.rows[C.today],planToday=rwT?rwT.pts:0;
  var allPk=(a.packs||0)+C.tot.b,sg=function(v){return(v>0?'+':v<0?'−':'')+f(Math.abs(v))},rtn=C.P.ref==1?'最低目标':'冲刺目标',
   worth=C.stepCost===Infinity?'无法估算':(C.rpp*(a.rstep>0?a.rstep:1)>=C.stepCost?'划算':'不划算'),
-  CV=[['cur','已得',f(C.cur)+' pt',esc(vd)],['now','此刻应得',f(C.planNow)+' pt'+chip,'按'+rtn+'和可打时间匀速算'],['left','距目标还差',(leftMin>0?'最低 '+f(leftMin):'最低 已达成')+'<br>冲刺 '+f(leftGoal),ongo?'折合每个完整的一天约 '+f(needMin)+' / '+f(needGoal)+' pt（首尾半天按实际可打时间折算）':''],['play','预测每天要打',f(C.avgG)+' 局 · 约 '+f(C.avgPts)+' pt','计划游戏 '+mm(pm)+(C.fullDays?'（按完整的一天算）':'')],['avail','每天可打',mm(C.avgAv),'= 24小时 − 睡觉 '+mm(C.sleepMin)+' − 忙碌 '+mm(C.busyMin)],['leis','休闲时间',mm(leis),'可打 − 计划游戏'],['fin','预计最终',f(C.final)+' pt','打法：'+PMN[C.pmk][0]+'；买心策略：'+BM[C.mode]+'；预计报酬 '+f(C.rwF)+' 宝石'],['free','不买心的话',f(C.free.final)+' pt',(C.free.final===C.final?'与预计最终相同，当前策略没有买心；':'只用自然回复和门票；')+'报酬 '+f(C.free.rw)+' 宝石'],['net','全程累计净收益',sg(C.netAll)+' 宝石','报酬 '+f(C.rwF)+' − 买心 '+f(C.gemsDone+C.gems)+'（共 '+f(allPk)+' 组，其中已买 '+f(a.packs||0)+'）'],['worth','买心划算吗',worth,Number.isFinite(C.stepCost)?'冲一档（'+f(a.rstep)+' pt）约花 '+f(C.stepCost)+' 宝石买心，只返 '+f(a.rgem)+' 宝石':'每组心数为 0'],['cost','后续消耗',f(C.tot.g)+' 心 · '+f(C.tot.t)+' 票','自然回复 '+f(C.tot.nat)+' 颗；买心 '+C.tot.b+' 组（'+f(C.gems)+' 宝石）'],['inc','后续收益',sg(C.netLeft)+' 宝石','再得报酬 '+f(C.incomeLeft)+' − 后续买心 '+f(C.gems)],['rib','每天的节奏','','']],
-  cvOn=DB.P.cv||['cur','now','left','play','avail','leis','fin','net'];
- h+='<div class="vcs">';
- CV.forEach(function(c,ci){if(cvOn.indexOf(c[0])<0)return;h+=c[0]==='rib'?'<div class="vc wide t'+(ci%4)+'"><dt>'+c[1]+'</dt><div class="sub">'+dayRibbon(C.avgAv||C.genPlay,pm)+'</div></div>':'<div class="vc t'+(ci%4)+'"><dt>'+c[1]+'</dt><dd>'+c[2]+'</dd>'+(c[3]?'<small>'+c[3]+'</small>':'')+'</div>'});
- h+='</div><details class="cvsel" id="cvsel"'+(window.__cvo?' open':'')+'><summary>选择显示的信息</summary><div class="cvs">'+CV.map(function(c){return'<label><input type="checkbox" data-cv="'+c[0]+'"'+(cvOn.indexOf(c[0])>=0?' checked':'')+'><span>'+c[1]+'</span></label>'}).join('')+'</div></details></div></div>';
+  CV=[['now','此刻应得',f(C.planNow)+' pt'+chip,'按'+rtn+'和可打时间匀速算','hot'],['got','今日已得',f(todayGot)+' pt',C.started?'今天实际打的进度':'活动尚未开始',''],['plan','今日计划',f(planToday)+' pt','按今天作息和目标摊开的当天计划',''],['left','距目标还差',(leftMin>0?'最低 '+f(leftMin):'最低 已达成')+'、冲刺 '+f(leftGoal),ongo?'折合每个完整的一天约 '+f(needMin)+' / '+f(needGoal)+' pt（首尾半天按实际可打时间折算）':'',leftGoal<=0?'pos':''],['play','预测每天要打',f(C.avgG)+' 局 · 约 '+f(C.avgPts)+' pt','计划游戏 '+mm(pm)+(C.fullDays?'（按完整的一天算）':''),'hot'],['avail','每天可打',mm(C.avgAv),'= 24小时 − 睡觉 '+mm(C.sleepMin)+' − 忙碌 '+mm(C.busyMin),''],['leis','休闲时间',mm(leis),'可打 − 计划游戏',''],['fin','预计最终',f(C.final)+' pt','打法：'+PMN[C.pmk][0]+'；买心策略：'+BM[C.mode]+'；预计报酬 '+f(C.rwF)+' 宝石',ok?'pos':'acc'],['free','不买心的话',f(C.free.final)+' pt',(C.free.final===C.final?'与预计最终相同，当前策略没有买心；':'只用自然回复和门票；')+'报酬 '+f(C.free.rw)+' 宝石',''],['net','全程累计净收益',sg(C.netAll)+' 宝石','报酬 '+f(C.rwF)+' − 买心 '+f(C.gemsDone+C.gems)+'（共 '+f(allPk)+' 组，其中已买 '+f(a.packs||0)+'）',C.netAll>=0?'pos':'neg'],['worth','买心划算吗',worth,Number.isFinite(C.stepCost)?'冲一档（'+f(a.rstep)+' pt）约花 '+f(C.stepCost)+' 宝石买心，只返 '+f(a.rgem)+' 宝石':'每组心数为 0',worth==='划算'?'pos':(worth==='不划算'?'neg':'')],['cost','后续消耗',f(C.tot.g)+' 心 · '+f(C.tot.t)+' 票','自然回复 '+f(C.tot.nat)+' 颗；买心 '+C.tot.b+' 组（'+f(C.gems)+' 宝石）',''],['inc','后续收益',sg(C.netLeft)+' 宝石','再得报酬 '+f(C.incomeLeft)+' − 后续买心 '+f(C.gems),C.netLeft>=0?'pos':'neg'],['rib','每天的节奏','','','']],
+  cvOn=DB.P.cv||['now','got','plan','left','play','avail','leis','fin','net'];
+ h+='</div></div>';
  el('#hero',h);
  var N=a.now||{pt:0,h:0,tk:0};
- el('#nowF','<label>当前 pt<input id="n-pt" type="number" inputmode="numeric" value="'+N.pt+'"></label><label>当前心数<input id="n-h" type="number" inputmode="numeric" value="'+N.h+'"></label><label>当前门票<input id="n-tk" type="number" inputmode="numeric" value="'+N.tk+'"></label><label>累计买心（组）<input id="n-pk" type="number" inputmode="numeric" value="'+(a.packs||0)+'"></label><button class="go" id="n-ok" type="button">记录此刻</button>');
+ var fh='<div class="rec-form"><label>当前 pt<input id="n-pt" type="number" inputmode="numeric" value="'+N.pt+'"></label><label>当前心数<input id="n-h" type="number" inputmode="numeric" value="'+N.h+'"></label><label>当前门票<input id="n-tk" type="number" inputmode="numeric" value="'+N.tk+'"></label><label>累计买心（组）<input id="n-pk" type="number" inputmode="numeric" value="'+(a.packs||0)+'"></label><button class="go" id="n-ok" type="button">记录此刻</button></div>';
+ var byKey={};CV.forEach(function(c){byKey[c[0]]=c});
+ var PARAS=[['now','got','plan'],['left','play'],['avail','leis'],['fin','net'],['free','worth','cost','inc']];
+ function clause(k){var c=byKey[k];return c[1]+' <b class="lv '+(c[4]||'')+'">'+c[2]+'</b>'}
+ var lines='<div class="lines">';
+ PARAS.forEach(function(pk){
+  var parts=pk.filter(function(k){return cvOn.indexOf(k)>=0&&byKey[k]}).map(clause);
+  if(parts.length)lines+='<p class="para">'+parts.join('，')+'。</p>';
+ });
+ if(cvOn.indexOf('rib')>=0)lines+='<div class="lmsg wide"><span class="lk">每天的节奏</span><div class="sub">'+dayRibbon(C.avgAv||C.genPlay,pm)+'</div></div>';
+ lines+='</div>';
+ var notes=CV.filter(function(c){return cvOn.indexOf(c[0])>=0&&c[3]});
+ var noteHtml=notes.length?'<details class="how"><summary>这些数字怎么算的</summary><ul class="note-list">'+notes.map(function(c){return'<li><b>'+c[1]+'</b>：'+c[3]+'</li>'}).join('')+'</ul></details>':'';
+ var sel='<details class="cvsel" id="cvsel"'+(window.__cvo?' open':'')+'><summary>选择显示的信息</summary><div class="cvs">'+CV.map(function(c){return'<label><input type="checkbox" data-cv="'+c[0]+'"'+(cvOn.indexOf(c[0])>=0?' checked':'')+'><span>'+c[1]+'</span></label>'}).join('')+'</div></details>';
+ el('#recPanel',fh+(vd?'<p class="rec-note">'+esc(vd)+'</p>':'')+lines+noteHtml+sel);
  var g='',off=new Date(C.base).getDay();
  '日一二三四五六'.split('').forEach(function(w){g+='<div class="wd">'+w+'</div>'});for(i=0;i<off;i++)g+='<div></div>';
  for(i=0;i<C.nD;i++){var cl='c',v,st='',d=new Date(C.base.getTime()+i*864e5),lab=(i===0||d.getDate()===1)?(d.getMonth()+1)+'/'+d.getDate():d.getDate();
@@ -1001,3 +1023,4 @@ window.__app={get DB(){return DB},set DB(v){DB=fix(v)},get C(){return C},calc:ca
 
 
 </body></html>
+<!-- （注：内容由AI生成） -->
