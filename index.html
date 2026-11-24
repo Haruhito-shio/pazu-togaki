@@ -424,11 +424,11 @@ function calc(a,pmo){a=a||A();var P=pmo===undefined?DB.P:Object.assign({},DB.P,{
  function nextT(p){var st=a.rstep>0?a.rstep:1;return p<a.rstart?a.rstart:a.rstart+(Math.floor((p-a.rstart)/st)+1)*st}
  function okBuy(mode,pt,nb,bud){if(mode===0)return false;if(mode===1)return pt<a.goal;var need=nb<bud&&pt<tgt;if(mode===2)return need;if(mode===3)return need||(cpp<rpp&&pt<a.pcap);return false}
  /* 模拟：mode 决定什么时候买心；心优先在满槽时用（不浪费回复），然后是门票 */
- function sim(mode,bud,pv,wb,dl,avM){wb=wb||byD;dl=dl||days;avM=avM||avF;var remW=[],acc=0;for(var ii=dl.length-1;ii>=0;ii--){acc+=avM[dl[ii]];remW[ii]=acc}
-  pv=pv===undefined?(+P.pm===0||+P.pm===2?+P.pm:1):pv;var gate=pv===2?cap:Math.max(1,cap-1),phase=0,bought=0,h=h0,tk=tk0,pt=pt0,rows={},tot={g:0,t:0,b:0,nat:0},last=t0,bi=0,prog=prog0,nb=0,la,R;
+ function sim(mode,bud,pv,wb,dl,avM,init){wb=wb||byD;dl=dl||days;avM=avM||avF;var remW=[],acc=0;for(var ii=dl.length-1;ii>=0;ii--){acc+=avM[dl[ii]];remW[ii]=acc}
+  pv=pv===undefined?(+P.pm===0||+P.pm===2?+P.pm:1):pv;var gate=pv===2?cap:Math.max(1,cap-1),phase=0,bought=0,idv=init&&init.dev?init.dev:0,h=init&&init.h!==undefined?init.h:h0,tk=init&&init.tk!==undefined?init.tk:tk0,pt=init&&init.pt!==undefined?init.pt:pt0,rows={},tot={g:0,t:0,b:0,nat:0},last=t0,bi=0,prog=prog0,nb=0,la,R;
   function reg(dt){if(dt<=0)return;if(h>=cap){prog=0;return}prog+=dt;var n=Math.floor(prog/rec);if(h+n>=cap){R.nat+=cap-h;h=cap;prog=0}else{h+=n;prog-=n*rec;R.nat+=n}}
   /* 逐分钟推进：能开一局就往前跳 mpg 分钟，开不了就等 1 分钟再看（不再按固定格子对齐） */
-  dl.forEach(function(d,di){var an0=ANCH[d],fr=an0!==null&&an0!==undefined&&an0!==la&&an0!==pt;if(fr)pt=an0;la=an0;
+  dl.forEach(function(d,di){var an0=ANCH[d],fr=d<=tIdx&&an0!==null&&an0!==undefined&&an0!==la&&an0!==pt;if(fr)pt=an0+idv;la=an0;
    R=rows[d]={need:Math.max(0,(a.goal-pt))*avM[d]/(remW[di]||1),g:0,t:0,b:0,nat:0,pts:0,ptsNow:0,st:pt,an:fr,cum:pt};
    wb[d].forEach(function(w){var t=w[0],e=w[1],u;
     while(t<e){
@@ -442,21 +442,28 @@ function calc(a,pmo){a=a||A();var P=pmo===undefined?DB.P:Object.assign({},DB.P,{
      else t+=1}});
    R.cum=pt;tot.g+=R.g;tot.t+=R.t;tot.b+=R.b;tot.nat+=R.nat});
   return{rows:rows,tot:tot,pt:pt}}
- var mode=+P.bm,FR=sim(0,0),PL=mode===0?FR:sim(mode,0);
+ var mode=+P.bm;
+ /* 今日起点 dsPt；s1 理想全天作息算此刻前应得 pn；顺延起点 = 当前累计 − pn（对齐 123 的 ds.pt+dev） */
+ var dsPt=(ANCH[tIdx]===null||ANCH[tIdx]===undefined)?0:ANCH[tIdx];
+ var saDays=daysAll.filter(function(d){return d>=tIdx}),saWb={};saDays.forEach(function(d){saWb[d]=byDall[d]});
+ var S1=sim(mode,0,undefined,saWb,saDays,avA,{h:cap,tk:a.tk,pt:dsPt});
+ var pnRow=S1.rows[tIdx],pn=nowA<s0?0:(pnRow?(nowA>=e0?pnRow.pts:pnRow.ptsNow):0);
+ var dev0=(N.pt-dsPt)-pn,planPt=nowA<s0?pt0:pt0-pn;
+ var FR=sim(0,0,undefined,undefined,undefined,undefined,{pt:planPt,dev:dev0}),PL=mode===0?FR:sim(mode,0,undefined,undefined,undefined,undefined,{pt:planPt,dev:dev0});
  if(mode===3&&hpk>0){var T1=nextT(FR.pt);if(T1<=a.pcap&&Math.ceil((T1-FR.pt)/hpk)*a.gpp<a.rgem)tgt=Math.max(tgt,T1)}
  /* 保最低目标：不买心也到不了目标时，才按缺口买，并用二分找出刚好够的组数（不多买） */
- function fit(m,P0){var Q=P0;if((m===2||m===3)&&Q.pt<tgt&&hpk>0){var hi=Math.ceil((tgt-Q.pt)/hpk),it=0;while(it++<10){Q=sim(m,hi);if(Q.pt>=tgt)break;hi+=Math.ceil((tgt-Q.pt)/hpk)}
-  if(Q.pt>=tgt){var lo=0;while(lo<hi){var mid=(lo+hi)>>1;if(sim(m,mid).pt>=tgt)hi=mid;else lo=mid+1}Q=sim(m,hi)}}return Q}
+ function fit(m,P0){var Q=P0;if((m===2||m===3)&&Q.pt<tgt&&hpk>0){var hi=Math.ceil((tgt-Q.pt)/hpk),it=0;while(it++<10){Q=sim(m,hi,undefined,undefined,undefined,undefined,{pt:planPt,dev:dev0});if(Q.pt>=tgt)break;hi+=Math.ceil((tgt-Q.pt)/hpk)}
+  if(Q.pt>=tgt){var lo=0;while(lo<hi){var mid=(lo+hi)>>1;if(sim(m,mid,undefined,undefined,undefined,undefined,{pt:planPt,dev:dev0}).pt>=tgt)hi=mid;else lo=mid+1}Q=sim(m,hi,undefined,undefined,undefined,undefined,{pt:planPt,dev:dev0})}}return Q}
  function netOf(Q){return rew(a,Q.pt)-Q.tot.b*a.gpp}
  PL=fit(mode,PL);
  if(mode===3){var alt=fit(2,FR);if(netOf(alt)>netOf(PL))PL=alt;if(FR.pt>=a.min&&netOf(FR)>netOf(PL))PL=FR}
- var rows=PL.rows,tot=PL.tot,pt=PL.pt,MX=(mode===1&&+P.pm===0)?PL:sim(1,0,0);
- var SA=sim(mode,0,undefined,byDall,daysAll,avA);
+ var rows=PL.rows,tot=PL.tot,pt=PL.pt,MX=(mode===1&&+P.pm===0)?PL:sim(1,0,0,undefined,undefined,undefined,{pt:planPt,dev:dev0});
+ var SA=sim(mode,0,undefined,saWb,saDays,avA,{h:cap,tk:a.tk,pt:planPt,dev:dev0});
  /* 每天平均：只取完整的一天（首尾不完整的天会把平均拉低），没有完整天时才用全部 */
  var wk=tp(P.wake),sl=tp(P.sleep);if(sl<=wk)sl+=1440;var awake=sl-wk,gen=sum(wins(P,2880,4320));
  var fd=days.filter(function(d){return avF[d]>=gen-1&&avA[d]>=gen-1}),use=fd.length?fd:days,n=use.length||1,sm=function(k){return use.reduce(function(s,d){return s+rows[d][k]},0)};
- var totW=sum(W),cur=N.pt,rwF=rew(a,pt),rwN=rew(a,cur),gl=tot.b*a.gpp,gd=(a.packs||0)*a.gpp,refT=+P.ref===1?a.min:a.goal,saRow=SA.rows[tIdx],anc=ANCH[tIdx],planNow=nowA<s0?0:(saRow?(nowA>=e0?saRow.pts:saRow.ptsNow):0),todayStart=(anc===null||anc===undefined)?0:anc;
- return{a:a,P:P,pmk:(+P.pm===0||+P.pm===2?+P.pm:1),base:base,s0:s0,e0:e0,nowA:nowA,nD:nD,rows:rows,days:days,avF:avF,avA:avA,final:pt,tot:tot,cur:cur,mode:mode,refT:refT,
+ var totW=sum(W),cur=N.pt,rwF=rew(a,pt),rwN=rew(a,cur),gl=tot.b*a.gpp,gd=(a.packs||0)*a.gpp,refT=+P.ref===1?a.min:a.goal,saRow=SA.rows[tIdx],anc=ANCH[tIdx],planNow=pn,todayStart=(anc===null||anc===undefined)?0:anc;
+ return{a:a,P:P,pmk:(+P.pm===0||+P.pm===2?+P.pm:1),base:base,s0:s0,e0:e0,nowA:nowA,nD:nD,rows:rows,SA:SA,days:days,avF:avF,avA:avA,final:pt,tot:tot,cur:cur,mode:mode,refT:refT,
   today:Math.floor(nowA/1440),n:n,avgPts:sm('pts')/n,avgG:(sm('g')+sm('t'))/n,avgAv:use.reduce(function(s,d){return s+avF[d]},0)/n,fullDays:fd.length,
   rwF:rwF,rwN:rwN,gems:gl,ended:Date.now()>=new Date(a.end),started:nowA>=s0,
   max:MX.pt,maxB:MX.tot.b,free:{final:FR.pt,rw:rew(a,FR.pt),tot:FR.tot},cpp:cpp,rpp:rpp,stepCost:a.hpp>0?a.rstep*a.gpp/(hp*a.hpp):Infinity,
@@ -494,6 +501,8 @@ function cdParts(){var a=C.a,s0=new Date(a.start),e0=new Date(a.end),now=Date.no
  if(now<s0){to=s0-now;lab='距活动开始'}else if(now<e0){to=e0-now;lab='距活动结束'}else{to=now-e0;lab='活动已结束'}
  var d=Math.floor(to/864e5),h=Math.floor(to%864e5/36e5),m=Math.floor(to%36e5/6e4),s=Math.floor(to%6e4/1e3);return{lab:lab,v:[d,h,m,s],over:now>=e0,frac:Math.min(1,Math.max(0,(now-s0)/(e0-s0)))}}
 function tickCd(){if(!C)return;var p=cdParts(),b=document.querySelectorAll('#cdt b');if(b.length===4)p.v.forEach(function(x,i){b[i].textContent=pd(x)})}
+/* 今天及以后取单条全天顺延曲线 SA，累计连续累加；过去天回退主预测 */
+function rowAt(i){return (C&&C.SA&&C.SA.rows[i])?C.SA.rows[i]:C.rows[i]}
 /* ---------- 渲染 ---------- */
 function render(){C=calc();var a=C.a,pct=a.goal>0?Math.max(0,Math.min(1,C.cur/a.goal)):0,ok=C.final>=a.goal-.5,i,cp=cdParts();
  if(sel===null)sel=Math.max(0,Math.min(C.nD-1,C.today));
@@ -506,9 +515,10 @@ function render(){C=calc();var a=C.a,pct=a.goal>0?Math.max(0,Math.min(1,C.cur/a.
   '<div class="cart" id="cart"><div class="ttl">EVENT · PLANNER</div>'+cartSvg(pct)+'<div class="plate"><span>距冲刺目标还差</span><b>'+f(leftGoal)+'</b><span>pt（目标 '+f(a.goal)+'）</span><u>進行 '+(pct*100).toFixed(1)+'%　·　轻点落花</u></div></div></div>';
  h+='<div class="side"><div class="cdp"><div class="lab"><span>'+cp.lab+'</span><small>'+esc(a.name)+'　'+dl(0)+' → '+dl(C.nD-1)+'</small></div><div class="cdt" id="cdt"><div><b class="'+(cp.v[0]>99?'l3':'')+'">'+pd(cp.v[0])+'</b><span>日</span></div><div><b>'+pd(cp.v[1])+'</b><span>时</span></div><div><b>'+pd(cp.v[2])+'</b><span>分</span></div><div><b>'+pd(cp.v[3])+'</b><span>秒</span></div></div><div class="tb"><i style="width:'+(cp.frac*100)+'%"></i></div><div class="tbl"><span>'+new Date(a.start).toLocaleString('zh-CN',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false})+' 开始</span><span>时间已走 '+Math.round(cp.frac*100)+'%</span><span>'+new Date(a.end).toLocaleString('zh-CN',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false})+' 结束</span></div>'+(C.ended?'<p style="margin:10px 0 0"><button class="go" id="fo" type="button">开启落幕仪式</button></p>':'')+'</div>';
  function rr(k,v,n){return'<div class="r"><dt>'+k+'</dt><dd>'+v+(n?'<small>'+n+'</small>':'')+'</dd></div>'}
+
  var ongo=C.started&&!C.ended,chip=ongo?(Math.abs(dev)<1?' <span class="chip ok">正好</span>':dev>0?' <span class="chip ok">领先 '+f(dev)+'</span>':' <span class="chip no">落后 '+f(-dev)+'</span>'):'';
  var todayGot=Math.max(0,C.cur-C.todayStart);
- var rwT=C.rows[C.today],planToday=rwT?rwT.pts:0;
+ var rwT=rowAt(C.today),planToday=rwT?rwT.pts:0;
  var needItems=[];
  if(leftMin>0)needItems.push(Math.ceil(needMin/perG)+' 局 · 约 '+f(needMin)+' pt（保最低）');
  if(leftGoal>0)needItems.push(Math.ceil(needGoal/perG)+' 局 · 约 '+f(needGoal)+' pt（冲冲刺）');
@@ -541,13 +551,13 @@ function render(){C=calc();var a=C.a,pct=a.goal>0?Math.max(0,Math.min(1,C.cur/a.
  for(i=0;i<C.nD;i++){var cl='c',v,st='',d=new Date(C.base.getTime()+i*864e5),lab=(i===0||d.getDate()===1)?(d.getMonth()+1)+'/'+d.getDate():d.getDate();
   if(i===sel)cl+=' s';if(i===C.today)cl+=' t';
   if(C.started&&(i<C.today||(i===C.today&&(C.ended||dayLast(C,i))))){var ac=actual(C,i);if(!ac){cl+=' m';v='缺'}else{v=fk(ac.v);cl+=' r'+(ac.merged?' mg':'');if(ac.v>=C.shr(i)-.5)st='<span class="st">達</span>'}}
-  else{var rw=C.rows[i];cl+=' f';v=rw?fk(rw.pts):'—'}
+  else{var rw=rowAt(i);cl+=' f';v=rw?fk(rw.pts):'—'}
   if(!st&&i===0)st='<span class="st k">开</span>';if(!st&&i===C.nD-1)st='<span class="st k">止</span>';
   g+='<button type="button" class="'+cl+'" data-i="'+i+'"><small>'+lab+'</small><b>'+v+'</b>'+st+'</button>'}
  el('#calg',g);detail();
  el('#calnote','红底为已记录的实际得分，紫底为预测，虚线“缺”是没有记录；“合”表示这天的数字合并了前几天没记录的部分，补录后会拆开。“達”＝这天的实际得分够到了“把目标按可打时间摊开的那一档”（开始当天下午才开始、结束当天中午就结束，首尾两天的可打时间少，那一档也小）。点一天看明细：“预计累计”是那天结束时的 pt，起点自动取“上一天最后一条记录”，没有记录就接着预测走。');
  strat();dd();chart();params();manage();acts();orns();tickCd()}
-function detail(){var i=sel,r=C.rows[i],fut=i>C.today||!C.started||(i===C.today&&!C.ended&&!dayLast(C,i)),ac=actual(C,i),av=(i>=C.today&&!C.ended)?C.avF[i]:C.avA[i],h='<h3>'+dl(i)+(i===C.today?'（今天）':'')+(i===C.today&&!C.ended?(fut?' · 进行中，只算剩下的时间':' · 进行中'):fut?' · 预测':' · 已发生')+'</h3><div class="tiles">';
+function detail(){var i=sel,r=rowAt(i),fut=i>C.today||!C.started||(i===C.today&&!C.ended&&!dayLast(C,i)),ac=actual(C,i),av=i===C.today?C.avA[i]:((i>=C.today&&!C.ended)?C.avF[i]:C.avA[i]),h='<h3>'+dl(i)+(i===C.today?'（今天）':'')+(i===C.today&&!C.ended?' · 进行中':fut?' · 预测':' · 已发生')+'</h3><div class="tiles">';
  var pm=r?(r.g+r.t)*C.P.mpg:0,lg=null;
  C.a.logs.forEach(function(l){if(l.t<C.base.getTime()+i*864e5&&(!lg||l.t>=lg.t))lg=l});
  var src=r?r.st:(lg?lg.pt:0),li=lg?Math.floor((lg.t-C.base.getTime())/864e5):-1,z=lg?dl(li):'',srcN=i===0?'活动开始时的起点':(r&&r.an&&lg?'接 '+z+' 的最后记录 '+f(lg.pt)+' pt（自动对齐）':'接着上一天的预测 '+f(src)+' pt');
@@ -563,7 +573,7 @@ function chart(){var a=C.a,cw=($('#chart')||{}).clientWidth||0,sm=cw>0&&cw<560,W
  function P(q){return q.map(function(p,k){return(k?'L':'M')+p[0].toFixed(1)+','+p[1].toFixed(1)}).join('')}
  var ac=[],fu=[],last,fr=(C.nowA-C.today*1440)/1440;
  for(i=0;i<n;i++){var l=dayLast(C,i);if(l)ac.push([X(i),Y(l.pt)])}
- if(C.started&&!C.ended){fu.push([X(C.today-1+fr),Y(C.cur)]);last=C.cur;for(i=Math.max(0,C.today);i<n;i++){if(C.rows[i])last=C.rows[i].cum;fu.push([X(i),Y(last)])}}
+ if(C.started&&!C.ended){fu.push([X(C.today-1+fr),Y(C.cur)]);last=C.cur;for(i=Math.max(0,C.today);i<n;i++){var rr2=rowAt(i);if(rr2)last=rr2.cum;fu.push([X(i),Y(last)])}}
  for(i=0;i<=4;i++){var v=ym/1.06*i/4;s+='<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+Y(v)+'" y2="'+Y(v)+'" stroke="#26348a" stroke-opacity=".15" stroke-dasharray="3 5"/><text x="'+(pl-8)+'" y="'+(Y(v)+4)+'" text-anchor="end" fill="#4a4470" font-size="12">'+Math.round(v/1e4)+'万</text>'}
  for(i=0;i<n;i+=Math.ceil(n/(sm?5:8)))s+='<text x="'+X(i)+'" y="'+(H-8)+'" text-anchor="middle" fill="#4a4470" font-size="12">'+dl(i)+'</text>';
  s+='<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+Y(a.goal)+'" y2="'+Y(a.goal)+'" stroke="#e0658c" stroke-width="2" stroke-dasharray="7 5"/><text x="'+(pl+6)+'" y="'+(Y(a.goal)-7)+'" fill="#c23d6c" font-size="13" font-weight="700">冲刺 '+Math.round(a.goal/1e4)+'万</text>';
@@ -575,7 +585,7 @@ function chart(){var a=C.a,cw=($('#chart')||{}).clientWidth||0,sm=cw>0&&cw<560,W
  ac.forEach(function(p){s+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="4.5" fill="#fff" stroke="#ff6b3d" stroke-width="2.5"/>'});
  el('#chart','<div class="tip" id="tip" hidden></div><svg viewBox="0 0 '+W+' '+H+'" id="cs" role="img" aria-label="累计 pt 走势">'+s+'<line id="gl" y1="'+pt+'" y2="'+(H-pb)+'" stroke="#2a2547" stroke-width="1.5" visibility="hidden"/><circle id="gc" r="7" fill="#2a2547" visibility="hidden"/><rect width="'+W+'" height="'+H+'" fill="transparent"/></svg>');
  var svg=$('#cs'),tip=$('#tip'),gl=$('#gl'),gc=$('#gc');
- function mv(e){var r=svg.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*W,k=Math.max(0,Math.min(n-1,Math.round((x-pl)/(W-pl-pr)*(n-1)))),l=dayLast(C,k),rw=C.rows[k],fo=rw&&k>=C.today,y=l?l.pt:fo?rw.cum:null;
+ function mv(e){var r=svg.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*W,k=Math.max(0,Math.min(n-1,Math.round((x-pl)/(W-pl-pr)*(n-1)))),l=dayLast(C,k),rw=rowAt(k),fo=rw&&k>=C.today,y=l?l.pt:fo?rw.cum:null;
   gl.setAttribute('x1',X(k));gl.setAttribute('x2',X(k));gl.setAttribute('visibility','visible');
   if(y!==null){gc.setAttribute('cx',X(k));gc.setAttribute('cy',Y(y));gc.setAttribute('visibility','visible')}else gc.setAttribute('visibility','hidden');
   tip.hidden=false;tip.style.left=Math.min(88,Math.max(12,X(k)/W*100))+'%';tip.style.top=(Y(y===null?0:y)/H*100)+'%';
@@ -584,7 +594,7 @@ function chart(){var a=C.a,cw=($('#chart')||{}).clientWidth||0,sm=cw>0&&cw<560,W
 
 var PMN={1:['心槽4颗就开','回到4颗心就开一轮'],2:['等满5颗再开','回满5颗才开一轮'],0:['连续打','心一空就买一组，心不断']};
 function strat(){var a=C.a,cur=C.pmk,S={},ord=[1,2,0],mp=C.P.mpg,M={};
- ord.forEach(function(m){var x=m===cur?C:calc(a,m),tm=0,k;for(k in x.rows)if(+k>=x.today||!x.started)tm+=(x.rows[k].g+x.rows[k].t)*mp;S[m]=x;
+ ord.forEach(function(m){var x=m===cur?C:calc(a,m),tm=0,k;for(k in x.rows)if(+k>=x.today||!x.started){var rk=(+k===x.today&&x.SA&&x.SA.rows[k])?x.SA.rows[k]:x.rows[k];tm+=(rk.g+rk.t)*mp}S[m]=x;
   M[m]={fin:x.final,gain:x.final-x.cur,gems:x.gems,pk:x.tot.b,min:tm,day:x.avgG*mp,g:x.avgG,inc:x.incomeLeft,net:x.netLeft,
    roi:x.gems>0?x.incomeLeft/x.gems:Infinity,nph:tm>0?x.netLeft/(tm/60):0,pph:tm>0?(x.final-x.cur)/(tm/60):0,okMin:x.final>=a.min-.5,okGoal:x.final>=a.goal-.5}});
  /* 综合推荐：先看目标（最低目标是底线，冲刺目标优先），同档里比净收益，差不到 1% 的比谁更省时间 */
@@ -619,13 +629,13 @@ function strat(){var a=C.a,cur=C.pmk,S={},ord=[1,2,0],mp=C.P.mpg,M={};
  el('#stratb',h+msg);
  var sc=$('#stratCur');if(sc){sc.className='ssv'+(cur===rec?' rec':'');sc.innerHTML='<i class="sf">'+(cur===rec?'推荐':'使用中')+' · </i><b>'+PMN[cur][0]+'</b>';if(PMN[cur][1])sc.title=PMN[cur][1]}}
 function dd(){var a=C.a,wd='日一二三四五六',h='<div class="stw"><table class="dtb"><thead><tr><th>日期</th><th>总局数</th><th>门票局</th><th>耗心局</th><th>自然回复</th><th>买心(组)</th><th>宝石</th><th>当日 pt</th><th>累计 pt</th><th>累计报酬</th></tr></thead><tbody>',T={n:0,t:0,g:0,r:0,b:0,p:0},lastC=0,i;
- for(i=0;i<C.nD;i++){var d=new Date(C.base.getTime()+i*864e5),lab=(d.getMonth()+1)+'/'+d.getDate()+' 周'+wd.charAt(d.getDay()),r=C.rows[i],past=C.started&&(i<C.today||(C.ended&&!r)),tr='';
+ for(i=0;i<C.nD;i++){var d=new Date(C.base.getTime()+i*864e5),lab=(d.getMonth()+1)+'/'+d.getDate()+' 周'+wd.charAt(d.getDay()),r=rowAt(i),past=C.started&&(i<C.today||(C.ended&&!r)),tr='';
   if(past||!r){var l=dayLast(C,i),ac=actual(C,i);
    if(ac){T.p+=ac.v;lastC=l.pt;tr='<td>'+lab+'</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>'+f(ac.v)+'</td><td>'+f(l.pt)+'</td><td>'+f(rew(a,l.pt))+'</td>'}
    else tr='<td>'+lab+'</td><td colspan="9" class="tdm">'+(past?'没有记录':'这天没有可打的时间')+'</td>'}
-  else{T.n+=r.g+r.t;T.t+=r.t;T.g+=r.g;T.r+=r.nat;T.b+=r.b;T.p+=r.pts;lastC=r.cum;tr='<td>'+lab+(i===C.today?'<small>今天·剩余</small>':'')+'</td><td>'+(r.g+r.t)+'</td><td>'+r.t+'</td><td>'+r.g+'</td><td>'+r.nat+'</td><td>'+r.b+'</td><td>'+f(r.b*a.gpp)+'</td><td>'+f(r.pts)+'</td><td>'+f(r.cum)+'</td><td>'+f(rew(a,r.cum))+'</td>'}
+  else{T.n+=r.g+r.t;T.t+=r.t;T.g+=r.g;T.r+=r.nat;T.b+=r.b;T.p+=r.pts;lastC=r.cum;tr='<td>'+lab+(i===C.today?'<small>今天</small>':'')+'</td><td>'+(r.g+r.t)+'</td><td>'+r.t+'</td><td>'+r.g+'</td><td>'+r.nat+'</td><td>'+r.b+'</td><td>'+f(r.b*a.gpp)+'</td><td>'+f(r.pts)+'</td><td>'+f(r.cum)+'</td><td>'+f(rew(a,r.cum))+'</td>'}
   h+='<tr'+(i===C.today?' class="tday"':'')+'>'+tr+'</tr>'}
- h+='<tr class="tsum"><td>合计</td><td>'+T.n+'</td><td>'+T.t+'</td><td>'+T.g+'</td><td>'+T.r+'</td><td>'+T.b+'</td><td>'+f(T.b*a.gpp)+'</td><td>'+f(T.p)+'</td><td>'+f(lastC)+'</td><td>'+f(rew(a,lastC))+'</td></tr></tbody></table></div><p class="note">已过去的日子只有你记录的当日得分和累计；今天和之后是按「'+PMN[C.pmk][0]+'」排的计划（今天只算剩下的时间）。合计里的局数、买心只含今天起的计划。</p>';
+ h+='<tr class="tsum"><td>合计</td><td>'+T.n+'</td><td>'+T.t+'</td><td>'+T.g+'</td><td>'+T.r+'</td><td>'+T.b+'</td><td>'+f(T.b*a.gpp)+'</td><td>'+f(T.p)+'</td><td>'+f(lastC)+'</td><td>'+f(rew(a,lastC))+'</td></tr></tbody></table></div><p class="note">已过去的日子只有你记录的当日得分和累计；今天和之后是按「'+PMN[C.pmk][0]+'」排的全天计划。合计里的局数、买心只含今天起的计划。</p>';
  el('#ddb',h)}
 var rzT=0;window.addEventListener('resize',function(){clearTimeout(rzT);rzT=setTimeout(function(){if(C)chart()},180)});
 document.addEventListener('click',function(e){var r=e.target.closest&&e.target.closest('#strat [data-pm]');if(!r)return;DB.P.pm=+r.dataset.pm;save();render();toast('已切换为「'+PMN[DB.P.pm][0]+'」')});
