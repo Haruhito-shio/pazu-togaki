@@ -416,7 +416,7 @@ function calc(a,pmo){a=a||A();var P=pmo===undefined?DB.P:Object.assign({},DB.P,{
  W.forEach(function(w){avA[Math.floor(w[0]/1440)]+=w[1]-w[0]});
  WF.forEach(function(w){var d=Math.floor(w[0]/1440);avF[d]+=w[1]-w[0];if(w[1]>w[0]){if(!byD[d]){byD[d]=[];days.push(d)}byD[d].push([w[0],w[1]])}});
  var byDall={},daysAll=[];W.forEach(function(w){var d=Math.floor(w[0]/1440);if(w[1]>w[0]){if(!byDall[d]){byDall[d]=[];daysAll.push(d)}byDall[d].push([w[0],w[1]])}});
- var B=[];for(i=0;i<=nD;i++){var tb=i*1440+1380;if(tb>t0&&tb<e0)B.push(tb)}
+ var wakeMin=tp(P.wake),B=[];for(i=0;i<=nD;i++){var tb=i*1440+1380;if(tb>t0&&tb<e0)B.push((i+1)*1440+wakeMin)}
  /* 每一天的起点 pt：取这一天开始之前的最后一条记录，没有就接着预测走 */
  var ANCH=[];(function(){var L=a.logs.slice().sort(function(p,q){return p.t-q.t}),k=0,lastP=null,lo;for(var j=0;j<=nD;j++){lo=base.getTime()+j*864e5;while(k<L.length&&L[k].t<lo){lastP=L[k].pt;k++}ANCH[j]=lastP}})();
  var cpp=a.hpp>0?a.gpp/(a.hpp*hp):Infinity,rpp=a.rgem/(a.rstep>0?a.rstep:1);
@@ -652,7 +652,7 @@ function fld(o,k,l,t,sc,op){var v=o[k],c;if(t==='sel')c='<select data-s="'+sc+'"
 function params(){var h='<h3>我的作息</h3>',a=A(),P=DB.P;FP.forEach(function(x){h+=fld(P,x[1],x[0],x[2],'P',x[3])});
  h+='<h3>忙碌（不可玩）时间</h3><div class="bz">';P.busy.forEach(function(b,i){h+='<input data-bz="'+i+'.0" type="time" value="'+b[0]+'"> 到 <input data-bz="'+i+'.1" type="time" value="'+b[1]+'"><button class="sm" data-del="'+i+'" type="button">删除</button>'});h+='<button class="sm" id="addB" type="button">添加一段</button></div><h3>活动规则</h3>';
  FA.forEach(function(x){h+=fld(a,x[1],x[0],x[2],'A',x[3])});el('#pg',h);
- el('#rules','门票每天 23:00 发放（累积或重置可选）；心满槽后自然回复暂停；活动开始时心槽满。可打时间 = 起床到睡觉 − 忙碌；休闲时间 = 可打时间 − 计划游戏时间。打法：心槽有4颗就开一轮 / 等满5颗再开一轮 / 连续打（心一空就买一组，心不断；买不了才用门票）；开一轮＝先用现成的心，一直打到心槽彻底归零才买一组（还剩 1 颗也先打掉，绝不提前补），再等回复，等的时候打门票。买心策略：不买心 / 买到冲刺目标 / 只买到最低目标 / 划算才买（买心每分报酬高于花费才买，并保证最低目标）。报酬：pt 达到“报酬起点”就发第一份，之后每多满“每档 pt”再发一份。净收益 = 预计报酬 − 买心花的宝石（含已买）。“此刻应得”按所选目标和可打时间匀速摊开算。');}
+ el('#rules','门票每天 23:00 发放、归属第二天（当晚发的票第二天才能用；累积或重置可选）；心满槽后自然回复暂停；活动开始时心槽满。可打时间 = 起床到睡觉 − 忙碌；休闲时间 = 可打时间 − 计划游戏时间。打法：心槽有4颗就开一轮 / 等满5颗再开一轮 / 连续打（心一空就买一组，心不断；买不了才用门票）；开一轮＝先用现成的心，一直打到心槽彻底归零才买一组（还剩 1 颗也先打掉，绝不提前补），再等回复，等的时候打门票。买心策略：不买心 / 买到冲刺目标 / 只买到最低目标 / 划算才买（买心每分报酬高于花费才买，并保证最低目标）。报酬：pt 达到“报酬起点”就发第一份，之后每多满“每档 pt”再发一份。净收益 = 预计报酬 − 买心花的宝石（含已买）。“此刻应得”按所选目标和可打时间匀速摊开算。');}
 function manage(){var a=A(),h='',L=a.logs.slice().sort(function(x,y){return y.t-x.t}),old=[];
  Object.keys(DB.acts).forEach(function(k){var x=DB.acts[k];if(k!==DB.cur&&new Date(x.end)<Date.now())old.push(k)});
  var cur=new Date(a.start)<=Date.now();
