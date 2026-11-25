@@ -382,8 +382,8 @@ var tt=0;function toast(s){var t=$('#toast');t.textContent=s;t.hidden=false;clea
 var KEY='honmaru-v2',DB=null,ref=null,wt=0,busy=false,dirty=false;
 function mk(name,start,end){return{name:name,start:start,end:end,goal:2000000,min:290000,tk:3,gpp:50,hpp:5,rstart:310000,rstep:10000,rgem:300,pcap:2000000,logs:[],now:null,packs:0,fort:null}}
 function seed(){var s=new Date();s.setHours(15,0,0,0);var e=new Date(s.getTime()+20*864e5);e.setHours(12,0,0,0);
- var d={ts:0,cur:'a1',P:{wake:'08:00',sleep:'23:30',busy:[['10:30','12:30'],['18:00','19:40']],mpg:7,hp:1050,tp:1000,rec:24,cap:5,bm:3,ref:0,tks:1},acts:{a1:mk('ぷずぎり 活动',iso(s),iso(e))}};return d}
-function fix(d){var k,a,df=mk('','','');if(!d.P)d.P=seed().P;var P0=d.P;if(P0.bm===undefined)P0.bm=(+P0.buy===0)?0:3;if(P0.ref===undefined)P0.ref=0;if(P0.pm===undefined)P0.pm=1;if(P0.tks===undefined)P0.tks=1;if(P0.cv&&!P0.cv2){P0.cv=P0.cv.concat(['free','worth']);P0.cv2=1}if(P0.cv===undefined)P0.cv2=1;if(!d.acts)d.acts={};for(k in d.acts){a=d.acts[k];Object.keys(df).forEach(function(q){if(a[q]===undefined)a[q]=df[q]});if(!a.logs)a.logs=[]}
+ var d={ts:0,cur:'a1',P:{wake:'08:00',sleep:'23:30',busy:[['10:30','12:30'],['18:00','19:40']],mpg:7,hp:1050,tp:1000,rec:24,cap:5,bm:3,ref:0,tks:1,prio:1},acts:{a1:mk('ぷずぎり 活动',iso(s),iso(e))}};return d}
+function fix(d){var k,a,df=mk('','','');if(!d.P)d.P=seed().P;var P0=d.P;if(P0.bm===undefined)P0.bm=(+P0.buy===0)?0:3;if(P0.ref===undefined)P0.ref=0;if(P0.pm===undefined)P0.pm=1;if(P0.tks===undefined)P0.tks=1;if(P0.prio===undefined)P0.prio=1;if(P0.cv&&!P0.cv2){P0.cv=P0.cv.concat(['free','worth']);P0.cv2=1}if(P0.cv===undefined)P0.cv2=1;if(!d.acts)d.acts={};for(k in d.acts){a=d.acts[k];Object.keys(df).forEach(function(q){if(a[q]===undefined)a[q]=df[q]});if(!a.logs)a.logs=[]}
  /* 老版本默认“一组心 10 颗”是照游戏旧 bug 填的；官方修成 50 宝石回 5 颗后，一次性把已存活动改过来 */
  if(!d.hppFix){for(k in d.acts){if(+d.acts[k].hpp===10)d.acts[k].hpp=5}d.hppFix=1}
  if(!d.acts[d.cur])d.cur=Object.keys(d.acts)[0];if(!d.cur){d=seed()}return d}
@@ -425,7 +425,7 @@ function calc(a,pmo){a=a||A();var P=pmo===undefined?DB.P:Object.assign({},DB.P,{
  function okBuy(mode,pt,nb,bud){if(mode===0)return false;if(mode===1)return pt<a.goal;var need=nb<bud&&pt<tgt;if(mode===2)return need;if(mode===3)return need||(cpp<rpp&&pt<a.pcap);return false}
  /* 模拟：mode 决定什么时候买心；心优先在满槽时用（不浪费回复），然后是门票 */
  function sim(mode,bud,pv,wb,dl,avM,init){wb=wb||byD;dl=dl||days;avM=avM||avF;var remW=[],acc=0;for(var ii=dl.length-1;ii>=0;ii--){acc+=avM[dl[ii]];remW[ii]=acc}
-  pv=pv===undefined?(+P.pm===0||+P.pm===2?+P.pm:1):pv;var gate=pv===2?cap:Math.max(1,cap-1),phase=0,bought=0,idv=init&&init.dev?init.dev:0,h=init&&init.h!==undefined?init.h:h0,tk=init&&init.tk!==undefined?init.tk:tk0,pt=init&&init.pt!==undefined?init.pt:pt0,rows={},tot={g:0,t:0,b:0,nat:0},last=t0,bi=0,prog=prog0,nb=0,la,R;
+  pv=pv===undefined?(+P.pm===0||+P.pm===2?+P.pm:1):pv;var prio=+P.prio===2?2:1,gate=pv===2?cap:Math.max(1,cap-1),phase=0,bought=0,idv=init&&init.dev?init.dev:0,h=init&&init.h!==undefined?init.h:h0,tk=init&&init.tk!==undefined?init.tk:tk0,pt=init&&init.pt!==undefined?init.pt:pt0,rows={},tot={g:0,t:0,b:0,nat:0},last=t0,bi=0,prog=prog0,nb=0,la,R;
   function reg(dt){if(dt<=0)return;if(h>=cap){prog=0;return}prog+=dt;var n=Math.floor(prog/rec);if(h+n>=cap){R.nat+=cap-h;h=cap;prog=0}else{h+=n;prog-=n*rec;R.nat+=n}}
   /* 逐分钟推进：能开一局就往前跳 mpg 分钟，开不了就等 1 分钟再看（不再按固定格子对齐） */
   dl.forEach(function(d,di){var an0=ANCH[d],fr=d<=tIdx&&an0!==null&&an0!==undefined&&an0!==la&&an0!==pt;if(fr)pt=an0+idv;la=an0;
@@ -435,8 +435,8 @@ function calc(a,pmo){a=a||A();var P=pmo===undefined?DB.P:Object.assign({},DB.P,{
      if(t+mpg>e)break;
      while(bi<B.length&&B[bi]<=t){reg(B[bi]-last);last=B[bi];tk=stack?tk+a.tk:a.tk;bi++}
      reg(t-last);last=t;u=null;
-     if(pv===0){if(h>=1){h--;u='g'}else if(a.hpp>=1&&okBuy(mode,pt,nb,bud)){h+=a.hpp;R.b++;nb++;h--;u='g'}else if(tk>0){tk--;u='t'}}
-     else{if(phase&&h>=gate){phase=0;bought=0}if(phase){if(tk>0){tk--;u='t'}}else if(h>=1){h--;u='g'}else if(!bought&&a.hpp>=1&&okBuy(mode,pt,nb,bud)){h+=a.hpp;R.b++;nb++;h--;bought=1;u='g'}else{phase=1;if(tk>0){tk--;u='t'}}}
+     if(pv===0){if(prio===2){if(tk>0){tk--;u='t'}else if(h>=1){h--;u='g'}else if(a.hpp>=1&&okBuy(mode,pt,nb,bud)){h+=a.hpp;R.b++;nb++;h--;u='g'}}else{if(h>=1){h--;u='g'}else if(a.hpp>=1&&okBuy(mode,pt,nb,bud)){h+=a.hpp;R.b++;nb++;h--;u='g'}else if(tk>0){tk--;u='t'}}}
+     else{if(phase&&h>=gate){phase=0;bought=0}if(phase){if(tk>0){tk--;u='t'}}else if(prio===2){if(tk>0){tk--;u='t'}else if(h>=1){h--;u='g'}else if(!bought&&a.hpp>=1&&okBuy(mode,pt,nb,bud)){h+=a.hpp;R.b++;nb++;h--;bought=1;u='g'}else{phase=1;if(tk>0){tk--;u='t'}}}else{if(h>=1){h--;u='g'}else if(!bought&&a.hpp>=1&&okBuy(mode,pt,nb,bud)){h+=a.hpp;R.b++;nb++;h--;bought=1;u='g'}else{phase=1;if(tk>0){tk--;u='t'}}}}
      if(u==='g'){R.g++;R.pts+=hp;if(d===tIdx&&t<nowA)R.ptsNow+=hp;pt+=hp;t+=mpg}
      else if(u==='t'){R.t++;R.pts+=tpp;if(d===tIdx&&t<nowA)R.ptsNow+=tpp;pt+=tpp;t+=mpg}
      else t+=1}});
@@ -646,13 +646,13 @@ function bg(){var s=ART.lines(11,1200,900,6,'#fff',1.3,.8),o='<svg viewBox="0 0 
 function orns(){Array.prototype.forEach.call(document.querySelectorAll('section.paper'),function(p,i){if(!p.querySelector('.orn')){var d=document.createElement('div');d.className='orn';d.innerHTML=ART.lines(31+i*7,200,160,2,i%2?'#26348a':'#ff6b3d',1.3,.8);p.insertBefore(d,p.firstChild)}})}
 function acts(){el('#act',Object.keys(DB.acts).map(function(k){return'<option value="'+k+'"'+(k===DB.cur?' selected':'')+'>'+esc(DB.acts[k].name)+'</option>'}).join(''))}
 /* ---------- 设定 ---------- */
-var FP=[['起床','wake','time'],['睡觉（可跨午夜）','sleep','time'],['每局用时（分钟）','mpg','number'],['耗心一局 pt','hp','number'],['门票一局 pt','tp','number'],['每颗心恢复（分钟）','rec','number'],['心槽上限','cap','number'],['打法','pm','sel',[[1,'心槽有4颗就开（推荐）'],[2,'等满5颗再开'],[0,'连续打']]],['买心策略','bm','sel',[[0,'不买心'],[1,'买心冲刺目标'],[2,'只保最低目标'],[3,'划算才买']]],['此刻应得对照','ref','sel',[[0,'冲刺目标'],[1,'最低目标']]],['门票未用完','tks','sel',[[1,'累积到之后'],[0,'每天重置']]]];
+var FP=[['起床','wake','time'],['睡觉（可跨午夜）','sleep','time'],['每局用时（分钟）','mpg','number'],['耗心一局 pt','hp','number'],['门票一局 pt','tp','number'],['每颗心恢复（分钟）','rec','number'],['心槽上限','cap','number'],['打法','pm','sel',[[1,'心槽有4颗就开（推荐）'],[2,'等满5颗再开'],[0,'连续打']]],['买心策略','bm','sel',[[0,'不买心'],[1,'买心冲刺目标'],[2,'只保最低目标'],[3,'划算才买']]],['此刻应得对照','ref','sel',[[0,'冲刺目标'],[1,'最低目标']]],['门票未用完','tks','sel',[[1,'累积到之后'],[0,'每天重置']]],['入场券优先','prio','sel',[[1,'先用心（推荐）'],[2,'先用门票']]]];
 var FA=[['活动名','name','text'],['开始','start','datetime-local'],['结束','end','datetime-local'],['最低目标 pt','min','number'],['冲刺目标 pt','goal','number'],['每天门票（23:00 发）','tk','number'],['每组宝石','gpp','number'],['每组心数','hpp','number'],['报酬起点 pt','rstart','number'],['每档 pt','rstep','number'],['每档宝石','rgem','number'],['报酬封顶 pt','pcap','number']];
 function fld(o,k,l,t,sc,op){var v=o[k],c;if(t==='sel')c='<select data-s="'+sc+'" data-k="'+k+'">'+op.map(function(x){return'<option value="'+x[0]+'"'+(+v===x[0]?' selected':'')+'>'+x[1]+'</option>'}).join('')+'</select>';else c='<input data-s="'+sc+'" data-k="'+k+'" type="'+t+'" value="'+esc(v)+'">';return'<label>'+l+c+'</label>'}
 function params(){var h='<h3>我的作息</h3>',a=A(),P=DB.P;FP.forEach(function(x){h+=fld(P,x[1],x[0],x[2],'P',x[3])});
  h+='<h3>忙碌（不可玩）时间</h3><div class="bz">';P.busy.forEach(function(b,i){h+='<input data-bz="'+i+'.0" type="time" value="'+b[0]+'"> 到 <input data-bz="'+i+'.1" type="time" value="'+b[1]+'"><button class="sm" data-del="'+i+'" type="button">删除</button>'});h+='<button class="sm" id="addB" type="button">添加一段</button></div><h3>活动规则</h3>';
  FA.forEach(function(x){h+=fld(a,x[1],x[0],x[2],'A',x[3])});el('#pg',h);
- el('#rules','门票每天 23:00 发放、归属第二天（当晚发的票第二天才能用；累积或重置可选）；心满槽后自然回复暂停；活动开始时心槽满。可打时间 = 起床到睡觉 − 忙碌；休闲时间 = 可打时间 − 计划游戏时间。打法：心槽有4颗就开一轮 / 等满5颗再开一轮 / 连续打（心一空就买一组，心不断；买不了才用门票）；开一轮＝先用现成的心，一直打到心槽彻底归零才买一组（还剩 1 颗也先打掉，绝不提前补），再等回复，等的时候打门票。买心策略：不买心 / 买到冲刺目标 / 只买到最低目标 / 划算才买（买心每分报酬高于花费才买，并保证最低目标）。报酬：pt 达到“报酬起点”就发第一份，之后每多满“每档 pt”再发一份。净收益 = 预计报酬 − 买心花的宝石（含已买）。“此刻应得”按所选目标和可打时间匀速摊开算。');}
+ el('#rules','门票每天 23:00 发放、归属第二天（当晚发的票第二天才能用；累积或重置可选）；心满槽后自然回复暂停；活动开始时心槽满。可打时间 = 起床到睡觉 − 忙碌；休闲时间 = 可打时间 − 计划游戏时间。打法：心槽有4颗就开一轮 / 等满5颗再开一轮 / 连续打（心一空就买一组，心不断；买不了才用门票）；开一轮＝先用现成的心，一直打到心槽彻底归零才买一组（还剩 1 颗也先打掉，绝不提前补），再等回复，等的时候打门票。入场券优先：可设先用心（默认，心靠自然回复不花宝石）或先用门票（留着心）。买心策略：不买心 / 买到冲刺目标 / 只买到最低目标 / 划算才买（买心每分报酬高于花费才买，并保证最低目标）。报酬：pt 达到“报酬起点”就发第一份，之后每多满“每档 pt”再发一份。净收益 = 预计报酬 − 买心花的宝石（含已买）。“此刻应得”按所选目标和可打时间匀速摊开算。');}
 function manage(){var a=A(),h='',L=a.logs.slice().sort(function(x,y){return y.t-x.t}),old=[];
  Object.keys(DB.acts).forEach(function(k){var x=DB.acts[k];if(k!==DB.cur&&new Date(x.end)<Date.now())old.push(k)});
  var cur=new Date(a.start)<=Date.now();
