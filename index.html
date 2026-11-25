@@ -560,8 +560,8 @@ function render(){C=calc();var a=C.a,pct=a.goal>0?Math.max(0,Math.min(1,C.cur/a.
 function detail(){var i=sel,r=rowAt(i),fut=i>C.today||!C.started||(i===C.today&&!C.ended&&!dayLast(C,i)),ac=actual(C,i),av=i===C.today?C.avA[i]:((i>=C.today&&!C.ended)?C.avF[i]:C.avA[i]),h='<h3>'+dl(i)+(i===C.today?'（今天）':'')+(i===C.today&&!C.ended?' · 进行中':fut?' · 预测':' · 已发生')+'</h3><div class="tiles">';
  var pm=r?(r.g+r.t)*C.P.mpg:0,lg=null;
  C.a.logs.forEach(function(l){if(l.t<C.base.getTime()+i*864e5&&(!lg||l.t>=lg.t))lg=l});
- var src=r?r.st:(lg?lg.pt:0),li=lg?Math.floor((lg.t-C.base.getTime())/864e5):-1,z=lg?dl(li):'',srcN=i===0?'活动开始时的起点':(r&&r.an&&lg?'接 '+z+' 的最后记录 '+f(lg.pt)+' pt（自动对齐）':'接着上一天的预测 '+f(src)+' pt');
- if(r)h+=tile('预计获得',f(r.pts)+' pt','当天新增')+tile('预计局数',(r.g+r.t)+' 局','耗心 '+r.g+' · 门票 '+r.t+' · 买心 '+r.b+' 组')+tile('预计累计',f(r.cum)+' pt','从 '+f(r.st)+' pt 起算');
+ var prevRow=i>0?rowAt(i-1):null,src=lg?lg.pt:(prevRow?prevRow.cum:0),li=lg?Math.floor((lg.t-C.base.getTime())/864e5):-1,z=lg?dl(li):'',srcN=i===0?'活动开始时的起点':(lg?'接 '+z+' 的最后记录 '+f(lg.pt)+' pt（自动对齐）':(prevRow?'接着上一天的预测 '+f(src)+' pt':'活动开始时的起点'));
+ if(r)h+=tile('预计获得',f(r.pts)+' pt','当天新增')+tile('预计局数',(r.g+r.t)+' 局','耗心 '+r.g+' · 门票 '+r.t+' · 买心 '+r.b+' 组')+tile('预计累计',f(r.cum)+' pt','从 '+f(src)+' pt 起算');
  h+=tile('起始 pt',f(src)+' pt',srcN,'var(--navy)')+tile('实际得分',ac?f(ac.v)+' pt':'无记录',ac&&ac.merged?'合并了前几天':'', 'var(--navy)')+tile('可打时间',mm(av),'','var(--sky)');
  if(r)h+=tile('计划游戏',mm(pm),'','var(--navy)')+tile('休闲时间',mm(Math.max(0,av-pm)),'可打 − 计划游戏','var(--mat)');
  h+='</div><div style="margin-top:10px">'+dayRibbon(av,pm)+'</div>';
